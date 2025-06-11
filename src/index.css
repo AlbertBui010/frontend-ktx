@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* src/index.css hoặc src/App.css */
+
+/* Custom Pagination Dots */
+.swiper-pagination-bullet {
+  background: #ccc !important; /* Màu mặc định của bullet */
+  opacity: 0.8 !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #f97316 !important; /* Màu cam cho bullet đang active (orange-500 của Tailwind) */
+  opacity: 1 !important;
+  width: 10px !important; /* Tăng kích thước nếu muốn */
+  height: 10px !important; /* Tăng kích thước nếu muốn */
+}
+
+/* Custom Navigation Buttons (Optional - if you want to style them as well) */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #f97316 !important; /* Màu cam cho mũi tên */
+}

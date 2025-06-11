@@ -1,0 +1,69 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import UserLayout from './layouts/UserLayout';
+import AuthLayout from './layouts/AuthLayout';
+import HomePage from './pages/HomePage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Topic from './components/Topic';
+import TopicDescription from './components/TopicDescription';
+import AdminLayout from "./layouts/AdminLayout";
+import AdminHomePage from "./pages/AdminHomePage";
+
+import StudentManager from "./components/Admin/StudentManager";
+import ElectricManager from "./components/Admin/ElectricManager";
+import PaymentManager from "./components/Admin/PaymentManager";
+import BedManager from "./components/Admin/BedManager";
+import RoomManager from "./components/Admin/RoomManager";
+import RoomAllocationManager from "./components/Admin/RoomAllocation";
+import NewsManager from "./components/Admin/NewsManager";
+import TopicManager from "./components/Admin/TopicManager";
+import StaffManager from "./components/Admin/StaffManager";
+import RoomTypeManager from "./components/Admin/RoomTypeManager";
+
+
+import Room from './components/Room'; // Import Room component
+import RoomDetailPage from "./pages/RoomDetailPage";
+import ScrollToTop from "./components/ScrollToTop";
+function App() {
+  return (
+    <>
+      <Router>
+
+        <ScrollToTop />
+        <Routes>
+          {/* Các trang có header/footer */}
+          <Route path="/" element={<UserLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="room" element={<Room />} />
+            <Route path="room/:id" element={<RoomDetailPage />} />
+            <Route path="topic" element={<Topic />} />
+            <Route path="topic/:id" element={<TopicDescription />} />
+          </Route>
+
+          {/* Các trang không header/footer */}
+          <Route path="/" element={<AuthLayout />}>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<AdminHomePage />} />
+            <Route path="sinh-vien" element={<StudentManager />} />
+            <Route path="dien" element={<ElectricManager />} />
+            <Route path="thanh-toan" element={<PaymentManager />} />
+            <Route path="giuong" element={<BedManager />} />
+            <Route path="phong" element={<RoomManager />} />
+            <Route path="phan-bo-phong" element={<RoomAllocationManager />} />
+            <Route path="bang-tin" element={<NewsManager />} />
+            <Route path="chu-de" element={<TopicManager />} />
+            <Route path="StaffManager" element={<StaffManager />} />
+            <Route path="RoomTypeManager" element={<RoomTypeManager />} />
+          </Route>
+        </Routes>
+      </Router>
+    </>
+
+  );
+}
+export default App;
