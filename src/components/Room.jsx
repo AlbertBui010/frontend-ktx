@@ -27,7 +27,7 @@ const Room = () => {
   });
 
   // Kết hợp thông tin loại phòng vào danh sách phòng ban đầu
-  const initialRoomsWithDetails = useMemo(() => 
+  const initialRoomsWithDetails = useMemo(() =>
     phongList.map(room => {
       const roomType = loaiPhongList.find(type => type.id === room.id_loai_phong);
       return {
@@ -37,7 +37,7 @@ const Room = () => {
         isAvailable: room.sl_hien_tai < room.sl_max,
       };
     })
-  , [phongList, loaiPhongList]);
+    , [phongList, loaiPhongList]);
 
   // State chứa danh sách phòng đã được lọc
   const [filteredRooms, setFilteredRooms] = useState(initialRoomsWithDetails);
@@ -215,16 +215,16 @@ const Room = () => {
                   <p className="text-sm text-gray-600 mb-2">Sức chứa: {room.sl_hien_tai}/{room.sl_max} người</p>
                   <p className="text-sm text-gray-600 mb-2">Giới tính: <span className="font-medium text-gray-700">{room.gender}</span></p>
                   <p className="text-sm text-gray-600 mb-4">Trạng thái:
-                    <span className={`ml-1 font-semibold ${                      room.isAvailable ? 'text-green-600' : 'text-red-600'
-                    }`}>                      {room.isAvailable ? 'Còn chỗ' : 'Hết chỗ'}
+                    <span className={`ml-1 font-semibold ${room.isAvailable ? 'text-green-600' : 'text-red-600'
+                      }`}>                      {room.isAvailable ? 'Còn chỗ' : 'Hết chỗ'}
                     </span>
                   </p>
                   <p className="text-lg font-bold text-orange-700 mb-4">{room.gia_loai_phong.toLocaleString('vi-VN')} VNĐ/tháng</p>
                   <button
-                    className={`w-full py-2 rounded-md font-semibold transition-colors duration-200 ${                      room.isAvailable
-                        ? 'bg-orange-500 text-white hover:bg-orange-600'
-                        : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                    }`}                    disabled={!room.isAvailable}
+                    className={`w-full py-2 rounded-md font-semibold transition-colors duration-200 ${room.isAvailable
+                      ? 'bg-orange-500 text-white hover:bg-orange-600'
+                      : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      }`} disabled={!room.isAvailable}
                     onClick={() => handleRegisterClick(room.id)} // Thêm onClick handler
                   >
                     {room.isAvailable ? 'Đăng ký ngay' : 'Hết chỗ'}

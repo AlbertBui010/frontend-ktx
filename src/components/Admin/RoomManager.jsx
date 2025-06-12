@@ -1,61 +1,70 @@
 import React, { useState, useEffect } from 'react';
+import { roomService } from '../../services/room/room.service';
+import { roomTypeService } from '../../services/room/room.service';
+
+const initialRoomState = {
+  id: '',
+  ten_phong: '',
+  id_loai_phong: '',
+  so_tang: '',
+  trang_thai: 'available',
+  mo_ta: '',
+  dang_hien: true,
+};
 
 const RoomManager = () => {
   const [rooms, setRooms] = useState([]);
+  const [roomTypes, setRoomTypes] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
   const [searchTermName, setSearchTermName] = useState('');
   const [searchTermRoomType, setSearchTermRoomType] = useState('');
-  const [searchTermStatus, setSearchTermStatus] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
-
-  // Mock Room Types for dropdown (in a real app, fetch this from API)
-  const mockRoomTypes = [
-    { id: 'LP001', ten: 'Phòng Tiêu Chuẩn' },
-    { id: 'LP002', ten: 'Phòng Cao Cấp' },
-    { id: 'LP003', ten: 'Phòng Đặc Biệt' },
-  ];
-
-  const initialRoomState = {
-    id: '', id_ktx: '', id_loai_phong: '', ten: '', sl_max: '', sl_hien_tai: '',
-    trang_thai: '', mo_ta: '', dang_hien: true, ngay_tao: '', ngay_cap_nhat: '',
-    nguoi_tao: '', nguoi_cap_nhat: ''
-  };
   const [currentRoom, setCurrentRoom] = useState(initialRoomState);
+  const [loading, setLoading] = useState(false);
 
-  // Load initial data
+  // Load room types
   useEffect(() => {
-    const mockRooms = [
-      { id: 'P001', id_ktx: 'KTXA', id_loai_phong: 'LP001', ten: 'Phòng A101', sl_max: 4, sl_hien_tai: 2, trang_thai: 'Hoạt động', mo_ta: 'Tầng 1, hướng ra vườn', dang_hien: true, ngay_tao: '2024-01-15', ngay_cap_nhat: '2024-01-15', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-      { id: 'P002', id_ktx: 'KTXB', id_loai_phong: 'LP002', ten: 'Phòng B203', sl_max: 2, sl_hien_tai: 2, trang_thai: 'Đầy', mo_ta: 'Tầng 2, view đẹp', dang_hien: true, ngay_tao: '2024-01-20', ngay_cap_nhat: '2024-01-20', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-      { id: 'P003', id_ktx: 'KTXA', id_loai_phong: 'LP001', ten: 'Phòng A102', sl_max: 4, sl_hien_tai: 0, trang_thai: 'Trống', mo_ta: 'Phòng mới sơn lại', dang_hien: true, ngay_tao: '2024-02-01', ngay_cap_nhat: '2024-02-01', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-      { id: 'P004', id_ktx: 'KTXC', id_loai_phong: 'LP003', ten: 'Phòng C301', sl_max: 1, sl_hien_tai: 1, trang_thai: 'Đầy', mo_ta: 'Phòng đặc biệt, yên tĩnh', dang_hien: true, ngay_tao: '2024-02-10', ngay_cap_nhat: '2024-02-10', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-    ];
-    setRooms(mockRooms);
-    setFilteredRooms(mockRooms);
+    roomTypeService.getAll().then(res => {
+      const data = res.data?.roomTypes || res.data || [];
+      setRoomTypes(data);
+    });
   }, []);
 
-  // Filtering logic
+  // Load rooms
+  const fetchRooms = async () => {
+    setLoading(true);
+    try {
+      const res = await roomService.getAll();
+      const data = res.data?.rooms || res.data || [];
+      setRooms(data);
+      setFilteredRooms(data);
+    } catch {
+      setRooms([]);
+      setFilteredRooms([]);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  // Filtering
   useEffect(() => {
     let results = rooms;
-
     if (searchTermName) {
       results = results.filter(room =>
-        room.ten.toLowerCase().includes(searchTermName.toLowerCase())
+        room.ten_phong?.toLowerCase().includes(searchTermName.toLowerCase())
       );
     }
     if (searchTermRoomType) {
       results = results.filter(room =>
-        room.id_loai_phong === searchTermRoomType
-      );
-    }
-    if (searchTermStatus) {
-      results = results.filter(room =>
-        room.trang_thai === searchTermStatus
+        String(room.id_loai_phong) === searchTermRoomType
       );
     }
     setFilteredRooms(results);
-  }, [searchTermName, searchTermRoomType, searchTermStatus, rooms]);
+  }, [searchTermName, searchTermRoomType, rooms]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -70,28 +79,27 @@ const RoomManager = () => {
     setEditingRoom(null);
     setCurrentRoom({
       ...initialRoomState,
-      id: `P${Date.now().toString().slice(-5)}`, // Simple ID generation
-      ngay_tao: new Date().toISOString().slice(0, 10),
-      nguoi_tao: 'current_user',
-      dang_hien: true,
-      sl_hien_tai: 0 // Default current occupants to 0 for new rooms
+      dang_hien: true
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingRoom) {
-      setRooms(rooms.map(r => (r.id === currentRoom.id ? {
-        ...currentRoom,
-        ngay_cap_nhat: new Date().toISOString().slice(0, 10),
-        nguoi_cap_nhat: 'current_user'
-      } : r)));
+    setLoading(true);
+    try {
+      if (editingRoom) {
+        await roomService.update(currentRoom.id, currentRoom);
+      } else {
+        await roomService.create(currentRoom);
+      }
+      await fetchRooms();
+      setIsAdding(false);
       setEditingRoom(null);
-    } else {
-      setRooms([...rooms, currentRoom]);
+      setCurrentRoom(initialRoomState);
+    } catch (err) {
+      alert('Có lỗi xảy ra khi lưu phòng!');
     }
-    setCurrentRoom(initialRoomState);
-    setIsAdding(false);
+    setLoading(false);
   };
 
   const handleEdit = (room) => {
@@ -100,14 +108,21 @@ const RoomManager = () => {
     setIsAdding(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa phòng này?')) {
-      setRooms(rooms.filter(room => room.id !== id));
-      if (editingRoom && editingRoom.id === id) {
-        setEditingRoom(null);
-        setIsAdding(false);
-        setCurrentRoom(initialRoomState);
+      setLoading(true);
+      try {
+        await roomService.delete(id);
+        await fetchRooms();
+        if (editingRoom && editingRoom.id === id) {
+          setEditingRoom(null);
+          setIsAdding(false);
+          setCurrentRoom(initialRoomState);
+        }
+      } catch {
+        alert('Xóa thất bại!');
       }
+      setLoading(false);
     }
   };
 
@@ -117,12 +132,6 @@ const RoomManager = () => {
     setCurrentRoom(initialRoomState);
   };
 
-  // Helper to get room type name
-  const getRoomTypeName = (id_loai_phong) => {
-    const type = mockRoomTypes.find(rt => rt.id === id_loai_phong);
-    return type ? type.ten : 'N/A';
-  };
-
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold text-center mb-6 text-black">Quản Lý Phòng</h1>
@@ -130,34 +139,23 @@ const RoomManager = () => {
       {/* --- Filter Section --- */}
       <div className="mb-8 p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">Lọc Phòng</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           <input
             type="text"
             placeholder="Lọc theo Tên Phòng"
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="p-3 border border-gray-300 rounded-md w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-orange-500"
             value={searchTermName}
             onChange={(e) => setSearchTermName(e.target.value)}
           />
           <select
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="p-3 border border-gray-300 rounded-md w-full md:w-1/2 focus:outline-none focus:ring-2 focus:ring-orange-500"
             value={searchTermRoomType}
             onChange={(e) => setSearchTermRoomType(e.target.value)}
           >
-            <option value="">Lọc theo Loại Phòng</option>
-            {mockRoomTypes.map(type => (
-              <option key={type.id} value={type.id}>{type.ten}</option>
+            <option value="">Tất cả loại phòng</option>
+            {roomTypes.map(rt => (
+              <option key={rt.id} value={rt.id}>{rt.ten_loai}</option>
             ))}
-          </select>
-          <select
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={searchTermStatus}
-            onChange={(e) => setSearchTermStatus(e.target.value)}
-          >
-            <option value="">Lọc theo Trạng Thái</option>
-            <option value="Hoạt động">Hoạt động</option>
-            <option value="Đang sửa chữa">Đang sửa chữa</option>
-            <option value="Đầy">Đầy</option>
-            <option value="Trống">Trống</option>
           </select>
         </div>
       </div>
@@ -168,26 +166,14 @@ const RoomManager = () => {
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">
             {editingRoom ? 'Cập Nhật Phòng' : 'Thêm Phòng Mới'}
           </h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label htmlFor="ten" className="text-sm font-medium text-gray-700 capitalize mb-1">Tên Phòng</label>
+              <label htmlFor="ten_phong" className="text-sm font-medium text-gray-700 capitalize mb-1">Tên Phòng</label>
               <input
                 type="text"
-                id="ten"
-                name="ten"
-                value={currentRoom.ten}
-                onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-            <div className="flex flex-col">
-              <label htmlFor="id_ktx" className="text-sm font-medium text-gray-700 capitalize mb-1">ID KTX</label>
-              <input
-                type="text"
-                id="id_ktx"
-                name="id_ktx"
-                value={currentRoom.id_ktx}
+                id="ten_phong"
+                name="ten_phong"
+                value={currentRoom.ten_phong}
                 onChange={handleInputChange}
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
@@ -204,30 +190,18 @@ const RoomManager = () => {
                 required
               >
                 <option value="">Chọn loại phòng</option>
-                {mockRoomTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.ten}</option>
+                {roomTypes.map(rt => (
+                  <option key={rt.id} value={rt.id}>{rt.ten_loai}</option>
                 ))}
               </select>
             </div>
             <div className="flex flex-col">
-              <label htmlFor="sl_max" className="text-sm font-medium text-gray-700 capitalize mb-1">SL Tối Đa</label>
+              <label htmlFor="so_tang" className="text-sm font-medium text-gray-700 capitalize mb-1">Số Tầng</label>
               <input
                 type="number"
-                id="sl_max"
-                name="sl_max"
-                value={currentRoom.sl_max}
-                onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                required
-              />
-            </div>
-            <div className="flex flex-col">
-              <label htmlFor="sl_hien_tai" className="text-sm font-medium text-gray-700 capitalize mb-1">SL Hiện Tại</label>
-              <input
-                type="number"
-                id="sl_hien_tai"
-                name="sl_hien_tai"
-                value={currentRoom.sl_hien_tai}
+                id="so_tang"
+                name="so_tang"
+                value={currentRoom.so_tang}
                 onChange={handleInputChange}
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
@@ -243,11 +217,10 @@ const RoomManager = () => {
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               >
-                <option value="">Chọn trạng thái</option>
-                <option value="Hoạt động">Hoạt động</option>
-                <option value="Đang sửa chữa">Đang sửa chữa</option>
-                <option value="Đầy">Đầy</option>
-                <option value="Trống">Trống</option>
+                <option value="available">Còn trống</option>
+                <option value="occupied">Đã thuê</option>
+                <option value="maintenance">Bảo trì</option>
+                <option value="reserved">Đã đặt</option>
               </select>
             </div>
             <div className="flex flex-col col-span-full">
@@ -268,7 +241,7 @@ const RoomManager = () => {
                 name="dang_hien"
                 checked={currentRoom.dang_hien}
                 onChange={handleInputChange}
-                className="h-5 w-5 text-emerald-600 focus:ring-orange-500 border-gray-300 rounded"
+                className="h-5 w-5 text-purple-600 focus:ring-orange-500 border-gray-300 rounded"
               />
               <label htmlFor="dang_hien" className="ml-2 text-sm font-medium text-gray-700">Đang hiển thị</label>
             </div>
@@ -277,6 +250,7 @@ const RoomManager = () => {
               <button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md shadow-md transition duration-300"
+                disabled={loading}
               >
                 {editingRoom ? 'Cập Nhật' : 'Thêm Mới'}
               </button>
@@ -284,6 +258,7 @@ const RoomManager = () => {
                 type="button"
                 onClick={handleCancel}
                 className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-md shadow-md transition duration-300"
+                disabled={loading}
               >
                 Hủy
               </button>
@@ -304,18 +279,22 @@ const RoomManager = () => {
           </button>
         </div>
 
-        {filteredRooms.length === 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500">Đang tải dữ liệu...</p>
+        ) : filteredRooms.length === 0 ? (
           <p className="text-center text-gray-500">Không tìm thấy phòng nào.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-sm">
               <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID Phòng</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Phòng</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Loại Phòng</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SL Hiện Tại/Max</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số Tầng</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng Thái</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hiển Thị</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                 </tr>
               </thead>
@@ -323,29 +302,36 @@ const RoomManager = () => {
                 {filteredRooms.map((room) => (
                   <tr key={room.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.ten}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{getRoomTypeName(room.id_loai_phong)}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.sl_hien_tai}/{room.sl_max}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.ten_phong}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.RoomType?.ten_loai || ''}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.so_tang}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{room.trang_thai}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        room.trang_thai === 'Hoạt động' ? 'bg-green-100 text-green-800' :
-                        room.trang_thai === 'Đầy' ? 'bg-red-100 text-red-800' :
-                        room.trang_thai === 'Trống' ? 'bg-blue-100 text-blue-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {room.trang_thai}
-                      </span>
+                      {room.RoomType ? Number(room.RoomType.gia_thue).toLocaleString('vi-VN') + ' VNĐ' : ''}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
+                      {room.dang_hien ? (
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          Có
+                        </span>
+                      ) : (
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                          Không
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleEdit(room)}
                         className="w-[100px] h-[50px] bg-black text-white transition transform duration-100 hover:scale-105 hover:bg-orange-500 mr-3 rounded-[50px] "
+                        disabled={loading}
                       >
                         Cập Nhật
                       </button>
                       <button
                         onClick={() => handleDelete(room.id)}
                         className="w-[100px] h-[50px] bg-black text-white transition transform duration-100 hover:scale-105 hover:bg-red-500 mr-3 rounded-[50px]"
+                        disabled={loading}
                       >
                         Xóa
                       </button>

@@ -11,7 +11,7 @@ const Topic = () => {
     : bangTinList;
 
   return (
-    <div className="p-6 container min-h-[400px] mx-auto relative mt-[100px]">
+    <div className="p-6 w-[90%] min-h-screen mx-auto relative">
       <div className="flex flex-col items-center mb-8">
         <h1 className="text-3xl font-bold mb-6">Chủ Đề Thông Báo</h1>
         <div className="w-[75px] h-1 bg-orange-500"></div>
@@ -35,7 +35,7 @@ const Topic = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {filteredBangTin.map(item => (
           <div
             key={item.id}
@@ -46,7 +46,7 @@ const Topic = () => {
               <img
                 src={item.hinh_nen}
                 alt={item.tieu_de}
-                className="w-full h-[220px] object-cover"
+                className="w-full h-[350px] object-cover"
               />
               <div className="p-4 bg-white">
                 <h2 className="text-xl font-semibold mb-2">{item.tieu_de}</h2>
