@@ -1,9 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* src/index.css hoặc src/App.css */
 
-/* Custom Pagination Dots */
+
 .swiper-pagination-bullet {
   background: #ccc !important; /* Màu mặc định của bullet */
   opacity: 0.8 !important;

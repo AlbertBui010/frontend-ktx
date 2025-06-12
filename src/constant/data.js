@@ -1,11 +1,11 @@
 export const slide = [
-    {
-      image: "/img/Banner2.png",
-    },
-    {
-      image: "/img/Banner1.png",
-    },
-  ];
+  {
+    image: "/img/Banner2.png",
+  },
+  {
+    image: "/img/Banner1.png",
+  },
+];
 
 
 // constants/data.js

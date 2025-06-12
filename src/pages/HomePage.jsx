@@ -8,7 +8,6 @@ const HomePage = () => {
       <Banner />
       <Topic />
       <Room />
-
     </div>
   )
 }

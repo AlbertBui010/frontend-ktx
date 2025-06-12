@@ -6,7 +6,7 @@ const RoomDetailPage = () => {
   const { id } = useParams();
   return (
     <div>
-        <RoomDetails key={id} />
+      <RoomDetails key={id} />
     </div>
   )
 }
