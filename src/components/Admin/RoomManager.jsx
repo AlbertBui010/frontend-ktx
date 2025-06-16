@@ -7,7 +7,7 @@ const initialRoomState = {
   ten_phong: '',
   id_loai_phong: '',
   so_tang: '',
-  trang_thai: 'available',
+  trang_thai: '',
   mo_ta: '',
   dang_hien: true,
 };

@@ -35,26 +35,62 @@ axiosInstance.interceptors.request.use(
 // Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => {
+    // Nếu response thành công, trả về data
     return response.data;
   },
   (error) => {
-    console.error("Response error:", error);
+    console.error("Response error:", error); // Log lỗi đầy đủ để debug
+
+    let errorMessage = "Đã xảy ra lỗi không xác định. Vui lòng thử lại.";
 
     if (error.response) {
-      // Server responded with error status
-      console.log("Error response data:", error.response.data);
+      // Lỗi từ server có phản hồi (status code 4xx, 5xx)
+      const { data, status } = error.response;
 
-      // Return error response data instead of throwing
-      return error.response.data;
+      // Ưu tiên lấy thông báo từ cấu trúc `message` hoặc `error.message` từ backend
+      if (data && data.message) {
+        errorMessage = data.message;
+      } else if (data && data.error && data.error.message) {
+        errorMessage = data.error.message;
+      } else {
+        // Fallback cho các status code cụ thể hoặc thông báo chung
+        switch (status) {
+          case 400:
+            errorMessage = "Yêu cầu không hợp lệ. Vui lòng kiểm tra dữ liệu đầu vào.";
+            break;
+          case 401:
+            errorMessage = "Không được phép. Vui lòng đăng nhập lại.";
+            // Bạn có thể thêm logic redirect đến trang login ở đây
+            // window.location.href = '/login';
+            break;
+          case 403:
+            errorMessage = "Bạn không có quyền thực hiện hành động này.";
+            break;
+          case 404:
+            errorMessage = "Không tìm thấy tài nguyên.";
+            break;
+          case 409: // Conflict, như trường hợp đã tồn tại
+            errorMessage = "Dữ liệu đã tồn tại hoặc có xung đột.";
+            break;
+          case 500:
+            errorMessage = "Lỗi máy chủ nội bộ. Vui lòng thử lại sau.";
+            break;
+          default:
+            errorMessage = `Lỗi từ Server (${status}): ${error.response.statusText || "Không xác định"}`;
+        }
+      }
     } else if (error.request) {
-      // Network error
-      console.error("Network error:", error.request);
-      throw new Error("Không thể kết nối đến server");
+      // Yêu cầu đã được gửi nhưng không nhận được phản hồi (lỗi mạng, server offline)
+      errorMessage = "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng của bạn.";
     } else {
-      // Other error
-      console.error("Unknown error:", error.message);
-      throw new Error(error.message);
+      // Lỗi xảy ra trong quá trình thiết lập request (lỗi client-side)
+      errorMessage = `Lỗi Client: ${error.message}`;
     }
+
+    // Ném một Promise.reject() với đối tượng Error mới chứa thông báo đã chuẩn hóa
+    const customError = new Error(errorMessage);
+    customError.originalError = error; // Giữ lại lỗi gốc để debug sâu hơn nếu cần
+    return Promise.reject(customError);
   }
 );
 
