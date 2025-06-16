@@ -88,7 +88,7 @@ const Login = () => {
               className="w-[400px] h-[70px] border-2 border-gray-300 rounded-[50px] border-collapse  p-4 text-lg shadow-lg"
             />
             <input
-              type="mat_khau"
+              type="password"
               name="mat_khau"
               value={formData.mat_khau}
               onChange={handleChange}

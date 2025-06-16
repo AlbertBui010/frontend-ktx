@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { roomTypeService } from '../../services/room/room.service';
 
 const initialRoomTypeState = {
-  id: '', ten_loai: '', so_giuong: '', gia_thue: '', dien_tich: '', mo_ta: '', dang_hien: true,
+  id: '', ten_loai: '', so_giuong: '', gia_thue: '', dien_tich: '', ghi_chu: '', dang_hien: true,
   ngay_tao: '', ngay_cap_nhat: '', nguoi_tao: '', nguoi_cap_nhat: ''
 };
 
@@ -183,11 +183,11 @@ const RoomTypeManager = () => {
               />
             </div>
             <div className="flex flex-col col-span-full">
-              <label htmlFor="mo_ta" className="text-sm font-medium text-gray-700 capitalize mb-1">Mô Tả</label>
+              <label htmlFor="mo_ta" className="text-sm font-medium text-gray-700 capitalize mb-1">Ghi Chu</label>
               <textarea
                 id="mo_ta"
                 name="mo_ta"
-                value={currentRoomType.mo_ta}
+                value={currentRoomType.ghi_chu}
                 onChange={handleInputChange}
                 rows="3"
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"

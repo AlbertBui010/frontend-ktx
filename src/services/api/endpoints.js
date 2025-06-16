@@ -1,3 +1,6 @@
+//src\services\api\endpoints.js
+import { Bed } from "lucide-react";
+
 export const API_ENDPOINTS = {
   // Authentication
 
@@ -29,6 +32,31 @@ export const API_ENDPOINTS = {
     CREATE: "/rooms/room-types",
     UPDATE: (id) => `/rooms/room-types/${id}`,
     DELETE: (id) => `/rooms/room-types/${id}`,
+  },
+
+  BED: {
+    GET_ALL_BEDS_BY_ROOM_ID:(roomId) => `/rooms/rooms/${roomId}/beds`,
+    CREATE: (roomId) => `/rooms/rooms/${roomId}/beds`,
+    UPDATE: (roomId, bedId) => `rooms/rooms/${roomId}/beds/${bedId}`, // <-- FIX: Add roomId parameter
+    DELETE: (roomId, bedId) => `rooms/rooms/${roomId}/beds/${bedId}`, // <-- FIX: Add roomId parameter and use bedId for consistency
+  },
+  TOPIC: {
+    GET_ALL: "topics/topics",
+    CREATE: "topics/topics",
+    UPDATE: (id) => `topics/topics/${id}`,
+    DELETE: (id) => `topics/topics/${id}`,
+  },
+  NEWS: {
+    GET_ALL: "topics/news",
+    CREATE: "topics/news",
+    UPDATE: (id) => `topics/news/${id}`,
+    DELETE: (id) => `topics/news/${id}`,
+  },
+  NEWS_TOPIC_LINK: {
+    GET_ALL: "/news-topic-links",
+    CREATE: "/news-topic-links",
+    UPDATE: (id) => `/news-topic-links/${id}`,
+    DELETE: (id) => `/news-topic-links/${id}`,
   },
 };
 

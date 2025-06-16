@@ -34,6 +34,8 @@ const AdminHomePage = () => {
       img: roomtype,
     },
     { label: "Quản Lý Phòng", path: "/admin/phong", img: room1 },
+    { label: "Quản Lý Giường", path: "/admin/giuong", img: bed },
+
     {
       label: "Quản Lý Sinh Viên",
       path: "/admin/sinh-vien",
@@ -41,7 +43,6 @@ const AdminHomePage = () => {
     },
     { label: "Quản Lý Điện", path: "/admin/dien", img: electric },
     { label: "Quản Lý Thanh Toán", path: "/admin/thanh-toan", img: payment },
-    { label: "Quản Lý Giường", path: "/admin/giuong", img: bed },
 
     {
       label: "Quản Lý Phân Bổ Phòng",
