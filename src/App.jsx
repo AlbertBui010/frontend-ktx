@@ -10,6 +10,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminHomePage from "./pages/AdminHomePage";
 
 import StudentManager from "./components/Admin/StudentManager";
+import StudentRequestManager from "./components/Admin/StudentRequestManager";
 import ElectricManager from "./components/Admin/ElectricManager";
 import PaymentManager from "./components/Admin/PaymentManager";
 import BedManager from "./components/Admin/BedManager";
@@ -24,6 +25,7 @@ import RoomTypeManager from "./components/Admin/RoomTypeManager";
 import Room from './components/Room'; // Import Room component
 import RoomDetailPage from "./pages/RoomDetailPage";
 import ScrollToTop from "./components/ScrollToTop";
+import SetupPassword from "./components/Auth/SetupPassword";
 function App() {
   return (
     <>
@@ -45,11 +47,13 @@ function App() {
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
+          <Route path="/setup-password" element={<SetupPassword />} />
 
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminHomePage />} />
             <Route path="sinh-vien" element={<StudentManager />} />
+            <Route path="sinh-vien-yeu-cau" element={<StudentRequestManager />} />
             <Route path="dien" element={<ElectricManager />} />
             <Route path="thanh-toan" element={<PaymentManager />} />
             <Route path="giuong" element={<BedManager />} />

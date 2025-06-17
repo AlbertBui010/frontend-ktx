@@ -41,6 +41,11 @@ const AdminHomePage = () => {
       path: "/admin/sinh-vien",
       img: student,
     },
+    {
+      label: "Quản Lý Phiếu Đăng Ký Sinh Viên",
+      path :"/admin/sinh-vien-yeu-cau",
+      img: student,
+    },
     { label: "Quản Lý Điện", path: "/admin/dien", img: electric },
     { label: "Quản Lý Thanh Toán", path: "/admin/thanh-toan", img: payment },
 
