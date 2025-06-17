@@ -7,7 +7,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = React.useState({
     tai_khoan: "",
-    mat_khau: "",
+    mssv: "",
   });
 
   const handleChange = (e) => {
@@ -21,12 +21,12 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Xử lý đầu vào hợp lệ
-    if (!formData.tai_khoan || !formData.mat_khau) {
+    if (!formData.mssv || !formData.mat_khau) {
       alert("Vui lòng điền đầy đủ thông tin đăng nhập.");
       return;
     }
 
-    if (formData.tai_khoan.length < 5 || formData.mat_khau.length < 6) {
+    if (formData.mssv.length < 5 || formData.mat_khau.length < 6) {
       alert(
         "Tên đăng nhập phải có ít nhất 5 ký tự và mật khẩu ít nhất 6 ký tự."
       );
@@ -34,14 +34,14 @@ const Login = () => {
     }
 
     let dataRequest = {
-      tai_khoan: formData.tai_khoan,
+      mssv: formData.mssv,
       mat_khau: formData.mat_khau,
     };
 
     let userType = ROLE.STUDENT;
-    if (!formData.tai_khoan.startsWith("DH")) {
+    if (!formData.mssv.startsWith("DH")) {
       dataRequest = {
-        ma_nv: formData.tai_khoan,
+        ma_nv: formData.mssv,
         mat_khau: formData.mat_khau,
       };
       userType = ROLE.STAFF;
@@ -57,7 +57,7 @@ const Login = () => {
       if (response.data.user.role === "admin") {
         navigate("/admin");
       } else {
-        navigate("/student");
+        navigate("/");
       }
     } else {
       alert(
@@ -81,8 +81,8 @@ const Login = () => {
             <h1 className="text-3xl font-bold text-center">Đăng Nhập</h1>
             <input
               type="text"
-              name="tai_khoan"
-              value={formData.tai_khoan}
+              name="mssv"
+              value={formData.mssv}
               onChange={handleChange}
               placeholder="MSSV Hoặc MA_NV"
               className="w-[400px] h-[70px] border-2 border-gray-300 rounded-[50px] border-collapse  p-4 text-lg shadow-lg"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { studentService } from "../../services";
+import { studentService } from "../../services/student/student.service";
 
 const SetupPassword = () => {
   const [searchParams] = useSearchParams();
@@ -43,17 +43,14 @@ const SetupPassword = () => {
     setError("");
 
     try {
-      const response = await studentService.setupPassword(
-        token,
-        formData.password
-      );
+      const response = await studentService.setupPassword(token, formData.password);
 
       if (response.success) {
-        alert(response.data.message);
+        alert(response.data.message || "Thiết lập mật khẩu thành công!");
         navigate("/login");
       } else {
-        let errorMessage = response.error.message;
-        if (response.error.message && response.error?.details?.length > 0) {
+        let errorMessage = response.error?.message || "Có lỗi xảy ra";
+        if (response.error?.details && response.error.details.length > 0) {
           errorMessage = response.error.details[0].msg;
         }
         setError(errorMessage);

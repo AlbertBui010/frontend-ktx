@@ -6,10 +6,23 @@ export const API_ENDPOINTS = {
 
   // Student Registration
   STUDENT_REGISTRATION: {
-    REGISTER: "/api/student-registration/register",
-    SETUP_PASSWORD: "/api/student-registration/setup-password",
+    REGISTER: "/auth/register/student",
+    SETUP_PASSWORD: "/students/setup-password",
   },
 
+  REGISTRATION: {
+    GET_ALL: "/registrations/", // Corrected: Path becomes /api/registrations/
+    CREATE: "/registrations/", // Corrected: Path becomes /api/registrations/
+    GET_BY_ID: (id) => `/${id}`, // Corrected: Path becomes /api/registrations/:id
+    APPROVE: (id) => `/registrations/${id}/approve`, // Corrected: Path becomes /api/registrations/:id/approve
+    REJECT: (id) => `/registrations/${id}/reject`, // Corrected: Path becomes /api/registrations/:id/reject
+    CANCEL: (id) => `/${id}/cancel`, // Added: Path becomes /api/registrations/:id/cancel
+    GET_MY_REGISTRATIONS: "/my-registrations", // Added: Path becomes /api/registrations/my-registrations
+
+    // If you add these to your controller later, they'd look like this:
+    // UPDATE: (id) => `/${id}`,
+    // DELETE: (id) => `/${id}`,
+  },
   // Login
   STUDENT: {
     LOGIN: "/auth/login/student",
@@ -35,7 +48,7 @@ export const API_ENDPOINTS = {
   },
 
   BED: {
-    GET_ALL_BEDS_BY_ROOM_ID:(roomId) => `/rooms/rooms/${roomId}/beds`,
+    GET_ALL_BEDS_BY_ROOM_ID: (roomId) => `/rooms/rooms/${roomId}/beds`,
     CREATE: (roomId) => `/rooms/rooms/${roomId}/beds`,
     UPDATE: (roomId, bedId) => `rooms/rooms/${roomId}/beds/${bedId}`, // <-- FIX: Add roomId parameter
     DELETE: (roomId, bedId) => `rooms/rooms/${roomId}/beds/${bedId}`, // <-- FIX: Add roomId parameter and use bedId for consistency

@@ -1,3 +1,5 @@
+//src\constant\data.js
+import { ENUM_PHIEU_DANG_KY_TRANG_THAI } from "../../../backend-ktx/src/constants/database.constants";
 export const slide = [
   {
     image: "/img/Banner2.png",
@@ -339,5 +341,99 @@ export const noiQuyPhongList = [
     ngay_cap_nhat: null,
     nguoi_tao: "Ban Quản lý",
     nguoi_cap_nhat: null,
+  },
+];
+
+
+export const phieuDangKyKtxList = [
+  {
+    id: 1,
+    id_sinh_vien: 1001, // Giả định ID sinh viên
+    ngay_dang_ky: "2025-06-05",
+    ngay_bat_dau: "2025-08-01",
+    ngay_ket_thuc: "2026-05-31",
+    trang_thai: ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING,
+    ly_do_dang_ky: "Em muốn có chỗ ở ổn định để tập trung học tập.",
+    ghi_chu: null,
+    nguoi_duyet: null,
+    ngay_duyet: null,
+    ly_do_tu_choi: null,
+    nguoi_tao: 201, // Giả định ID nhân viên tạo (ví dụ: nhân viên phòng công tác sinh viên)
+    nguoi_cap_nhat: null,
+    dang_hien: true,
+    ngay_tao: "2025-06-05T10:00:00.000Z",
+    ngay_cap_nhat: "2025-06-05T10:00:00.000Z",
+  },
+  {
+    id: 2,
+    id_sinh_vien: 1002,
+    ngay_dang_ky: "2025-06-01",
+    ngay_bat_dau: "2025-08-01",
+    ngay_ket_thuc: "2026-05-31",
+    trang_thai: ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING,
+    ly_do_dang_ky: "Nhà xa trường, đi lại bất tiện.",
+    ghi_chu: "Đã kiểm tra hồ sơ, sinh viên thuộc diện ưu tiên.",
+    nguoi_duyet: 202, // Giả định ID nhân viên duyệt
+    ngay_duyet: "2025-06-10T14:30:00.000Z",
+    ly_do_tu_choi: null,
+    nguoi_tao: 201,
+    nguoi_cap_nhat: 202,
+    dang_hien: true,
+    ngay_tao: "2025-06-01T09:00:00.000Z",
+    ngay_cap_nhat: "2025-06-10T14:30:00.000Z",
+  },
+  {
+    id: 3,
+    id_sinh_vien: 1003,
+    ngay_dang_ky: "2025-06-03",
+    ngay_bat_dau: "2025-08-01",
+    ngay_ket_thuc: "2026-05-31",
+    trang_thai: ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING,
+    ly_do_dang_ky: "Tìm kiếm môi trường học tập tốt hơn.",
+    ghi_chu: null,
+    nguoi_duyet: 202,
+    ngay_duyet: "2025-06-08T11:00:00.000Z",
+    ly_do_tu_choi: "Số lượng phòng có hạn, ưu tiên sinh viên năm nhất và diện khó khăn.",
+    nguoi_tao: 201,
+    nguoi_cap_nhat: 202,
+    dang_hien: true,
+    ngay_tao: "2025-06-03T11:30:00.000Z",
+    ngay_cap_nhat: "2025-06-08T11:00:00.000Z",
+  },
+  {
+    id: 4,
+    id_sinh_vien: 1004,
+    ngay_dang_ky: "2025-05-28",
+    ngay_bat_dau: "2025-08-01",
+    ngay_ket_thuc: "2026-05-31",
+    trang_thai: ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING,
+    ly_do_dang_ky: "Đã tìm được chỗ trọ bên ngoài.",
+    ghi_chu: null,
+    nguoi_duyet: null,
+    ngay_duyet: null,
+    ly_do_tu_choi: null,
+    nguoi_tao: 201,
+    nguoi_cap_nhat: 1004, // Sinh viên tự hủy
+    dang_hien: false, // Khi hủy có thể không hiển thị nữa
+    ngay_tao: "2025-05-28T16:00:00.000Z",
+    ngay_cap_nhat: "2025-06-02T09:00:00.000Z",
+  },
+  {
+    id: 5,
+    id_sinh_vien: 1005,
+    ngay_dang_ky: "2025-06-10",
+    ngay_bat_dau: "2025-08-01",
+    ngay_ket_thuc: "2026-05-31",
+    trang_thai: ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING,
+    ly_do_dang_ky: "Muốn trải nghiệm cuộc sống KTX.",
+    ghi_chu: null,
+    nguoi_duyet: null,
+    ngay_duyet: null,
+    ly_do_tu_choi: null,
+    nguoi_tao: 201,
+    nguoi_cap_nhat: null,
+    dang_hien: true,
+    ngay_tao: "2025-06-10T11:20:00.000Z",
+    ngay_cap_nhat: "2025-06-10T11:20:00.000Z",
   },
 ];
