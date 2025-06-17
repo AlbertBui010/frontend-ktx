@@ -1,4 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { roomTypeService } from '../../services/room/room.service';
+
+const initialRoomTypeState = {
+  id: '', ten_loai: '', so_giuong: '', gia_thue: '', dien_tich: '', ghi_chu: '', dang_hien: true,
+  ngay_tao: '', ngay_cap_nhat: '', nguoi_tao: '', nguoi_cap_nhat: ''
+};
 
 const RoomTypeManager = () => {
   const [roomTypes, setRoomTypes] = useState([]);
@@ -6,22 +12,26 @@ const RoomTypeManager = () => {
   const [searchTermName, setSearchTermName] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [editingRoomType, setEditingRoomType] = useState(null);
-
-  const initialRoomTypeState = {
-    id: '', ten: '', gia: '', mo_ta: '', dang_hien: true,
-    ngay_tao: '', ngay_cap_nhat: '', nguoi_tao: '', nguoi_cap_nhat: ''
-  };
   const [currentRoomType, setCurrentRoomType] = useState(initialRoomTypeState);
+  const [loading, setLoading] = useState(false);
 
-  // Load initial data
+  // Load data từ API
+  const fetchRoomTypes = async () => {
+    setLoading(true);
+    try {
+      const res = await roomTypeService.getAll();
+      const data = res.data.roomTypes || res.data;
+      setRoomTypes(data);
+      setFilteredRoomTypes(data);
+    } catch {
+      setRoomTypes([]);
+      setFilteredRoomTypes([]);
+    }
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const mockRoomTypes = [
-      { id: 'LP001', ten: 'Phòng Tiêu Chuẩn', gia: 1500000, mo_ta: 'Phòng 4 người, có điều hòa', dang_hien: true, ngay_tao: '2024-01-01', ngay_cap_nhat: '2024-01-01', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-      { id: 'LP002', ten: 'Phòng Cao Cấp', gia: 2500000, mo_ta: 'Phòng 2 người, có điều hòa, tủ lạnh', dang_hien: true, ngay_tao: '2024-01-05', ngay_cap_nhat: '2024-01-05', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-      { id: 'LP003', ten: 'Phòng Đặc Biệt', gia: 3000000, mo_ta: 'Phòng VIP 1 người, full tiện nghi', dang_hien: false, ngay_tao: '2024-01-10', ngay_cap_nhat: '2024-01-10', nguoi_tao: 'admin', nguoi_cap_nhat: 'admin' },
-    ];
-    setRoomTypes(mockRoomTypes);
-    setFilteredRoomTypes(mockRoomTypes);
+    fetchRoomTypes();
   }, []);
 
   // Filtering logic
@@ -29,7 +39,7 @@ const RoomTypeManager = () => {
     let results = roomTypes;
     if (searchTermName) {
       results = results.filter(type =>
-        type.ten.toLowerCase().includes(searchTermName.toLowerCase())
+        type.ten_loai.toLowerCase().includes(searchTermName.toLowerCase())
       );
     }
     setFilteredRoomTypes(results);
@@ -48,27 +58,27 @@ const RoomTypeManager = () => {
     setEditingRoomType(null);
     setCurrentRoomType({
       ...initialRoomTypeState,
-      id: `LP${Date.now().toString().slice(-5)}`, // Simple ID generation
-      ngay_tao: new Date().toISOString().slice(0, 10),
-      nguoi_tao: 'current_user', // Replace with actual user
-      dang_hien: true // Default to true for new entries
+      dang_hien: true
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingRoomType) {
-      setRoomTypes(roomTypes.map(rt => (rt.id === currentRoomType.id ? {
-        ...currentRoomType,
-        ngay_cap_nhat: new Date().toISOString().slice(0, 10),
-        nguoi_cap_nhat: 'current_user' // Replace with actual user
-      } : rt)));
+    setLoading(true);
+    try {
+      if (editingRoomType) {
+        await roomTypeService.update(currentRoomType.id, currentRoomType);
+      } else {
+        await roomTypeService.create(currentRoomType);
+      }
+      await fetchRoomTypes();
+      setIsAdding(false);
       setEditingRoomType(null);
-    } else {
-      setRoomTypes([...roomTypes, currentRoomType]);
+      setCurrentRoomType(initialRoomTypeState);
+    } catch (err) {
+      alert('Có lỗi xảy ra khi lưu loại phòng!');
     }
-    setCurrentRoomType(initialRoomTypeState);
-    setIsAdding(false);
+    setLoading(false);
   };
 
   const handleEdit = (roomType) => {
@@ -77,14 +87,21 @@ const RoomTypeManager = () => {
     setIsAdding(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc chắn muốn xóa loại phòng này?')) {
-      setRoomTypes(roomTypes.filter(roomType => roomType.id !== id));
-      if (editingRoomType && editingRoomType.id === id) {
-        setEditingRoomType(null);
-        setIsAdding(false);
-        setCurrentRoomType(initialRoomTypeState);
+      setLoading(true);
+      try {
+        await roomTypeService.delete(id);
+        await fetchRoomTypes();
+        if (editingRoomType && editingRoomType.id === id) {
+          setEditingRoomType(null);
+          setIsAdding(false);
+          setCurrentRoomType(initialRoomTypeState);
+        }
+      } catch {
+        alert('Xóa thất bại!');
       }
+      setLoading(false);
     }
   };
 
@@ -118,35 +135,59 @@ const RoomTypeManager = () => {
           </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col">
-              <label htmlFor="ten" className="text-sm font-medium text-gray-700 capitalize mb-1">Tên Loại Phòng</label>
+              <label htmlFor="ten_loai" className="text-sm font-medium text-gray-700 capitalize mb-1">Tên Loại Phòng</label>
               <input
                 type="text"
-                id="ten"
-                name="ten"
-                value={currentRoomType.ten}
+                id="ten_loai"
+                name="ten_loai"
+                value={currentRoomType.ten_loai}
                 onChange={handleInputChange}
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               />
             </div>
             <div className="flex flex-col">
-              <label htmlFor="gia" className="text-sm font-medium text-gray-700 capitalize mb-1">Giá (VNĐ)</label>
+              <label htmlFor="so_giuong" className="text-sm font-medium text-gray-700 capitalize mb-1">Số Giường</label>
               <input
                 type="number"
-                id="gia"
-                name="gia"
-                value={currentRoomType.gia}
+                id="so_giuong"
+                name="so_giuong"
+                value={currentRoomType.so_giuong}
+                onChange={handleInputChange}
+                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="gia_thue" className="text-sm font-medium text-gray-700 capitalize mb-1">Giá (VNĐ)</label>
+              <input
+                type="number"
+                id="gia_thue"
+                name="gia_thue"
+                value={currentRoomType.gia_thue}
+                onChange={handleInputChange}
+                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <label htmlFor="dien_tich" className="text-sm font-medium text-gray-700 capitalize mb-1">Dien tich(m2)</label>
+              <input
+                type="number"
+                id="dien_tich"
+                name="dien_tich"
+                value={currentRoomType.dien_tich}
                 onChange={handleInputChange}
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 required
               />
             </div>
             <div className="flex flex-col col-span-full">
-              <label htmlFor="mo_ta" className="text-sm font-medium text-gray-700 capitalize mb-1">Mô Tả</label>
+              <label htmlFor="mo_ta" className="text-sm font-medium text-gray-700 capitalize mb-1">Ghi Chu</label>
               <textarea
                 id="mo_ta"
                 name="mo_ta"
-                value={currentRoomType.mo_ta}
+                value={currentRoomType.ghi_chu}
                 onChange={handleInputChange}
                 rows="3"
                 className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
@@ -168,6 +209,7 @@ const RoomTypeManager = () => {
               <button
                 type="submit"
                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md shadow-md transition duration-300"
+                disabled={loading}
               >
                 {editingRoomType ? 'Cập Nhật' : 'Thêm Mới'}
               </button>
@@ -175,6 +217,7 @@ const RoomTypeManager = () => {
                 type="button"
                 onClick={handleCancel}
                 className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-md shadow-md transition duration-300"
+                disabled={loading}
               >
                 Hủy
               </button>
@@ -195,7 +238,9 @@ const RoomTypeManager = () => {
           </button>
         </div>
 
-        {filteredRoomTypes.length === 0 ? (
+        {loading ? (
+          <p className="text-center text-gray-500">Đang tải dữ liệu...</p>
+        ) : filteredRoomTypes.length === 0 ? (
           <p className="text-center text-gray-500">Không tìm thấy loại phòng nào.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -204,7 +249,9 @@ const RoomTypeManager = () => {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên Loại Phòng</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số Giường</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diện Tích</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô Tả</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hiển Thị</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
@@ -214,8 +261,10 @@ const RoomTypeManager = () => {
                 {filteredRoomTypes.map((roomType) => (
                   <tr key={roomType.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{roomType.id}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{roomType.ten}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{roomType.gia.toLocaleString('vi-VN')} VNĐ</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{roomType.ten_loai}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{roomType.so_giuong}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{Number(roomType.gia_thue).toLocaleString('vi-VN')} VNĐ</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{roomType.dien_tich}</td>
                     <td className="px-6 py-4 text-sm text-gray-900">{roomType.mo_ta}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-center text-sm">
                       {roomType.dang_hien ? (
@@ -232,12 +281,14 @@ const RoomTypeManager = () => {
                       <button
                         onClick={() => handleEdit(roomType)}
                         className="w-[100px] h-[50px] bg-black text-white transition transform duration-100 hover:scale-105 hover:bg-orange-500 mr-3 rounded-[50px] "
+                        disabled={loading}
                       >
                         Cập Nhật
                       </button>
                       <button
                         onClick={() => handleDelete(roomType.id)}
                         className="w-[100px] h-[50px] bg-black text-white transition transform duration-100 hover:scale-105 hover:bg-red-500 mr-3 rounded-[50px]"
+                        disabled={loading}
                       >
                         Xóa
                       </button>
