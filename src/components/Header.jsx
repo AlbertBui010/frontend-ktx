@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import logo from "/img/logo2.png";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, CircleUser } from "lucide-react";
 import clsx from "clsx";
 import ProfileTab from "./ProfileTab"; // Đường dẫn tùy vào cấu trúc dự án
 
@@ -88,7 +88,8 @@ const Header = () => {
               </>
             ) : (
               <button onClick={() => setShowProfile(true)}>
-                <User className="w-6 h-6 hover:text-orange-600" />
+                
+                <CircleUser className="w-7 h-7 hover:text-orange-600" />
               </button>
             )}
           </div>

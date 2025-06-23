@@ -6,6 +6,7 @@ export const API_ENDPOINTS = {
 
   // Student Registration
   STUDENT_REGISTRATION: {
+    
     REGISTER: "/auth/register/student",
     SETUP_PASSWORD: "/students/setup-password",
   },
@@ -26,8 +27,17 @@ export const API_ENDPOINTS = {
   // Login
   STUDENT: {
     LOGIN: "/auth/login/student",
+    GET_ALL: "/students/",
+    CREATE: "/students/",
+    UPDATE: (id) => `/students/${id}`,
+    DELETE: (id) => `/students/${id}`,
+
   },
   STAFF: {
+    GET_ALL: "/staff/",
+    CREATE: "/staff/",
+    UPDATE: (id) => `/staff/${id}`,
+    DELETE: (id) => `/staff/${id}`,
     LOGIN: "/auth/login/staff",
   },
 
@@ -70,6 +80,13 @@ export const API_ENDPOINTS = {
     CREATE: "/news-topic-links",
     UPDATE: (id) => `/news-topic-links/${id}`,
     DELETE: (id) => `/news-topic-links/${id}`,
+  },
+  ROOM_ALLOCATION: {
+    GET_ALL: "/room-allocations/",
+    CREATE: "/room-allocations/",
+    UPDATE: (id) => `/room-allocations/${id}`,
+    DELETE: (id) => `/room-allocations/${id}`,
+    GET_BY_ID: (id) => `/room-allocations/${id}`,
   },
 };
 

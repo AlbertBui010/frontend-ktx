@@ -26,6 +26,7 @@ import Room from './components/Room'; // Import Room component
 import RoomDetailPage from "./pages/RoomDetailPage";
 import ScrollToTop from "./components/ScrollToTop";
 import SetupPassword from "./components/Auth/SetupPassword";
+import ProfileUser from "./pages/UserProfile";
 function App() {
   return (
     <>
@@ -48,7 +49,7 @@ function App() {
             <Route path="register" element={<Register />} />
           </Route>
           <Route path="/setup-password" element={<SetupPassword />} />
-
+          <Route path="profile" element={<ProfileUser />} />
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminHomePage />} />
