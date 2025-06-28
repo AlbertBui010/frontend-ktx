@@ -451,22 +451,7 @@ const StudentRequestManager = () => {
                             )}
                         </div>
 
-                        {selectedRequest.trang_thai === ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING && (
-                            <div className="mb-4">
-                                <label htmlFor="selectedBedId" className="block text-gray-700 text-sm font-bold mb-2">
-                                    ID Giường (dành cho chấp thuận):
-                                </label>
-                                <input
-                                    type="number"
-                                    id="selectedBedId"
-                                    name="selectedBedId"
-                                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-500"
-                                    placeholder="Nhập ID giường để gán cho sinh viên"
-                                    value={selectedBedId}
-                                    onChange={(e) => setSelectedBedId(e.target.value)}
-                                />
-                            </div>
-                        )}
+                        
 
                         <div className="flex justify-end space-x-4 mt-6 border-t pt-4">
                             {selectedRequest.trang_thai === ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING && (

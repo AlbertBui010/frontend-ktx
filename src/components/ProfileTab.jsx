@@ -22,11 +22,19 @@ const ProfileTab = ({ isOpen, onClose, user }) => {
                 className={`fixed top-0 right-0 h-full w-[250px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out 
         ${isOpen ? "translate-x-0" : "translate-x-full"}`}
             >
-                <div className="flex justify-between items-center px-4 py-4 border-b">
-                    <h2 className="text-xl font-bold">Tài Khoản</h2>
-                    <button onClick={onClose}>
-                        <X className="w-6 h-6" />
-                    </button>
+                <div className="flex justify-between px-4 py-4 border-b flex-col space-y-4">
+                    <div className="flex justify-between items-center w-full">
+                        <h2 className="text-xl font-bold">Xin Chào!</h2>
+                        <button onClick={onClose}>
+                            <X className="w-6 h-6 hover:text-red-500" />
+                        </button>
+                    </div>
+                    <div className="">
+                        <p className="text-sm text-gray-600">
+                            Account: {user?.ten || "Người Dùng"}
+                        </p>
+                    </div>
+
                 </div>
 
                 <div className="flex flex-col px-4 py-6 space-y-4 text-[16px] font-medium">

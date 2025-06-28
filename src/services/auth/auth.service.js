@@ -1,6 +1,12 @@
 import { apiClient } from "../api";
 import { API_ENDPOINTS } from "../api/endpoints";
 
+
+const TOKEN_KEY = "auth_token";
+const USER_KEY  = "user_info";
+const TYPE_KEY  = "user_type";
+
+
 export const authService = {
   register: async (userData) => {
     return await apiClient.post(
@@ -18,6 +24,10 @@ export const authService = {
     return await apiClient.post(endpoint, credentials);
   },
 
+  getProfile: async () =>{
+    const res = await apiClient.get(API_ENDPOINTS.AUTH.PROFILE);
+    return res.data; // Giả sử API trả về { user: {...} }
+  },
   // Logout
   logout: async (token) => {
     return await apiClient.post(
@@ -36,40 +46,40 @@ export const authService = {
 
   // Lưu token vào localStorage
   setToken: (token) => {
-    localStorage.setItem("auth_token", token);
+    localStorage.setItem(TOKEN_KEY, token);
   },
 
   // Lấy token từ localStorage
   getToken: () => {
-    return localStorage.getItem("auth_token");
+    return localStorage.getItem(TOKEN_KEY);
   },
 
   // Xóa token
   removeToken: () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_type");
-    localStorage.removeItem("user_info");
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TYPE_KEY);
+    localStorage.removeItem(USER_KEY);
   },
 
   // Lưu thông tin user
   setUserInfo: (userInfo, userType) => {
-    localStorage.setItem("user_info", JSON.stringify(userInfo));
-    localStorage.setItem("user_type", userType);
+    localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
+    localStorage.setItem(TYPE_KEY, userType);
   },
 
   // Lấy thông tin user
   getUserInfo: () => {
-    const userInfo = localStorage.getItem("user_info");
+    const userInfo = localStorage.getItem(USER_KEY);
     return userInfo ? JSON.parse(userInfo) : null;
   },
 
   // Lấy loại user
   getUserType: () => {
-    return localStorage.getItem("user_type");
+    return localStorage.getItem(TYPE_KEY);
   },
 
   // Kiểm tra đã login chưa
   isAuthenticated: () => {
-    return !!localStorage.getItem("auth_token");
+    return !!localStorage.getItem(TOKEN_KEY);
   },
 };

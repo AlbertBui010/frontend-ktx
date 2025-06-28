@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from "react";
 import logo from "/img/logo2.png";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, CircleUser } from "lucide-react";
 import clsx from "clsx";
 import ProfileTab from "./ProfileTab"; // Đường dẫn tùy vào cấu trúc dự án
+import { authService } from "../services/auth/auth.service";   // ⭐
 
 const Header = () => {
   const [hideLogo, setHideLogo] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [user, setUser] = useState(() => authService.getUserInfo()); // ⭐
 
-  let user = JSON.parse(localStorage.getItem("user"));
-
+ /* Cập nhật user nếu tab khác login/logout */
+  useEffect(() => {
+    const sync = () => setUser(authService.getUserInfo());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+  
   useEffect(() => {
     const handleScroll = () => {
       setHideLogo(window.scrollY > 100);
@@ -88,7 +95,8 @@ const Header = () => {
               </>
             ) : (
               <button onClick={() => setShowProfile(true)}>
-                <User className="w-6 h-6 hover:text-orange-600" />
+                
+                <CircleUser className="w-7 h-7 hover:text-orange-600" />
               </button>
             )}
           </div>

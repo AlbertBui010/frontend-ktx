@@ -1,82 +1,104 @@
 // src/components/Room.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
-// Import Swiper React components
+import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-
-// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-
-// Import required modules
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
-
-// Import the static data
-import { phongList, loaiPhongList } from '../constant/data'; // Adjust the path if needed
+import { roomService, roomTypeService } from '../services/room/room.service';
 
 const Room = () => {
-  const navigate = useNavigate(); // Khởi tạo hook useNavigate
+  const navigate = useNavigate();
 
-  // State để quản lý các tiêu chí lọc
+  // State
+  const [rooms, setRooms] = useState([]);
+  const [roomTypes, setRoomTypes] = useState([]);
   const [filters, setFilters] = useState({
     sl_max: '',
     trang_thai: '',
-    gender: '',
+    gioi_tinh: '', // Đổi tên từ 'gender' sang 'gioi_tinh' để khớp với trường dữ liệu
     id_loai_phong: '',
   });
 
-  // Kết hợp thông tin loại phòng vào danh sách phòng ban đầu
-  const initialRoomsWithDetails = useMemo(() =>
-    phongList.map(room => {
-      const roomType = loaiPhongList.find(type => type.id === room.id_loai_phong);
-      return {
-        ...room,
-        ten_loai_phong: roomType ? roomType.ten : 'Chưa xác định',
-        gia_loai_phong: roomType ? roomType.gia : 0,
-        isAvailable: room.sl_hien_tai < room.sl_max,
-      };
-    })
-    , [phongList, loaiPhongList]);
-
-  // State chứa danh sách phòng đã được lọc
-  const [filteredRooms, setFilteredRooms] = useState(initialRoomsWithDetails);
-
-  // useEffect để lọc phòng khi filters thay đổi
+  // Fetch rooms & room types from API
   useEffect(() => {
-    let currentFilteredRooms = initialRoomsWithDetails;
+    const fetchData = async () => {
+      try {
+        const [roomRes, typeRes] = await Promise.all([
+          roomService.getAll({ limit: 100 }),
+          roomTypeService.getAll(), // ✅ Gọi đúng hàm từ roomTypeService
+        ]);
+        // Lấy đúng trường từ API backend trả về
+        setRooms(roomRes.data?.rooms || []);
+        setRoomTypes(typeRes.data?.roomTypes || []);
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu phòng hoặc loại phòng:", err); // Log lỗi để dễ debug
+        setRooms([]);
+        setRoomTypes([]);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Kết hợp thông tin loại phòng vào danh sách phòng và tính toán các trạng thái
+  const roomsWithDetails = useMemo(() => {
+    return rooms
+      .filter(room => room.dang_hien) // chỉ lấy phòng đang hiển thị
+      .map(room => {
+        // Tìm loại phòng phù hợp. Ưu tiên room.RoomType nếu backend đã join sẵn
+        const roomType = room.RoomType || roomTypes.find(type => type.id === room.id_loai_phong);
+
+        // Tính toán số giường hiện tại đang "occupied"
+        // Giả sử mỗi phòng có thể có nhiều giường và trường `trang_thai` của giường là 'occupied'
+        const currentOccupiedBeds = Array.isArray(room.Beds) ? room.Beds.filter(bed => bed.trang_thai === "occupied").length : 0;
+
+        // Kiểm tra xem phòng còn giường trống không (trạng thái 'available')
+        const isAvailable = Array.isArray(room.Beds) ? room.Beds.some(bed => bed.trang_thai === "available") : false;
+
+        return {
+          ...room,
+          ten_loai_phong: roomType?.ten_loai || 'Chưa xác định',
+          gia_loai_phong: Number(roomType?.gia_thue) || 0,
+          so_giuong_toi_da: roomType?.so_giuong || 0, // Đổi tên để rõ ràng hơn: sl_max -> so_giuong_toi_da
+          so_giuong_hien_tai_da_chiem: currentOccupiedBeds, // Số giường đã có người
+          con_cho_trong: isAvailable, // Trạng thái còn chỗ trống
+          gioi_tinh_phong: room.gioi_tinh || 'Không giới hạn', // Đổi tên để rõ ràng hơn: gender -> gioi_tinh_phong
+        };
+      });
+  }, [rooms, roomTypes]);
+
+  // Lọc phòng theo filter
+  const filteredRooms = useMemo(() => {
+    let currentFilteredRooms = roomsWithDetails;
 
     if (filters.sl_max) {
       currentFilteredRooms = currentFilteredRooms.filter(room =>
-        room.sl_max === parseInt(filters.sl_max)
+        String(room.so_giuong_toi_da) === String(filters.sl_max)
       );
     }
-
     if (filters.trang_thai) {
-      currentFilteredRooms = currentFilteredRooms.filter(room =>
-        room.trang_thai === filters.trang_thai
-      );
+      if (filters.trang_thai === "Còn chỗ") { // Thay đổi từ "Còn giường" sang "Còn chỗ" để khớp với logic `con_cho_trong`
+        currentFilteredRooms = currentFilteredRooms.filter(room => room.con_cho_trong);
+      } else if (filters.trang_thai === "Đầy") {
+        currentFilteredRooms = currentFilteredRooms.filter(room => !room.con_cho_trong);
+      }
     }
-
-    if (filters.gender) {
+    if (filters.gioi_tinh) { // Sử dụng 'gioi_tinh' thay vì 'gender'
       currentFilteredRooms = currentFilteredRooms.filter(room => {
-        if (filters.gender === 'Không giới hạn') {
-          return true;
-        }
-        return room.gender === filters.gender || room.gender === 'Không giới hạn';
+        if (filters.gioi_tinh === 'Không giới hạn') return true;
+        return room.gioi_tinh_phong === filters.gioi_tinh || room.gioi_tinh_phong === 'Không giới hạn';
       });
     }
-
     if (filters.id_loai_phong) {
       currentFilteredRooms = currentFilteredRooms.filter(room =>
-        room.id_loai_phong === parseInt(filters.id_loai_phong)
+        String(room.id_loai_phong) === String(filters.id_loai_phong)
       );
     }
+    return currentFilteredRooms;
+  }, [filters, roomsWithDetails]);
 
-    setFilteredRooms(currentFilteredRooms);
-  }, [filters, initialRoomsWithDetails]);
-
-  // Hàm xử lý thay đổi filter
+  // Xử lý thay đổi filter
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prevFilters => ({
@@ -85,9 +107,9 @@ const Room = () => {
     }));
   };
 
-  // Hàm xử lý khi bấm nút "Đăng ký ngay"
+  // Xử lý khi bấm "Đăng ký ngay"
   const handleRegisterClick = (roomId) => {
-    navigate(`/room/${roomId}`); // Chuyển hướng đến trang RoomDetails với ID phòng
+    navigate(`/room/${roomId}`);
   };
 
   return (
@@ -100,7 +122,7 @@ const Room = () => {
       {/* --- Filter Section --- */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-xl font-semibold mb-4 text-gray-800">Bộ lọc phòng</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {/* Lọc theo sức chứa */}
           <div>
             <label htmlFor="sl_max" className="block text-sm font-medium text-gray-700">Sức chứa:</label>
@@ -109,15 +131,15 @@ const Room = () => {
               name="sl_max"
               value={filters.sl_max}
               onChange={handleFilterChange}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-black focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
             >
               <option value="">Tất cả</option>
-              <option value="2">2 người</option>
-              <option value="3">3 người</option>
-              <option value="4">4 người</option>
+              {/* Lấy các giá trị so_giuong_toi_da duy nhất từ roomsWithDetails */}
+              {[...new Set(roomsWithDetails.map(r => r.so_giuong_toi_da))].sort((a, b) => a - b).map(val => (
+                <option key={val} value={val}>{val} người</option>
+              ))}
             </select>
           </div>
-
           {/* Lọc theo tình trạng */}
           <div>
             <label htmlFor="trang_thai" className="block text-sm font-medium text-gray-700">Tình trạng:</label>
@@ -126,45 +148,27 @@ const Room = () => {
               name="trang_thai"
               value={filters.trang_thai}
               onChange={handleFilterChange}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-black focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
             >
               <option value="">Tất cả</option>
-              <option value="Còn giường">Còn giường</option>
+              <option value="Còn chỗ">Còn chỗ</option> {/* Đổi tên hiển thị */}
               <option value="Đầy">Đầy</option>
             </select>
           </div>
-
           {/* Lọc theo giới tính */}
           <div>
-            <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Giới tính:</label>
+            <label htmlFor="gioi_tinh" className="block text-sm font-medium text-gray-700">Giới tính:</label>
             <select
-              id="gender"
-              name="gender"
-              value={filters.gender}
+              id="gioi_tinh" // Sử dụng 'gioi_tinh'
+              name="gioi_tinh" // Sử dụng 'gioi_tinh'
+              value={filters.gioi_tinh}
               onChange={handleFilterChange}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-black focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
             >
               <option value="">Tất cả</option>
               <option value="Nam">Nam</option>
               <option value="Nữ">Nữ</option>
               <option value="Không giới hạn">Không giới hạn</option>
-            </select>
-          </div>
-
-          {/* Lọc theo loại phòng */}
-          <div>
-            <label htmlFor="id_loai_phong" className="block text-sm font-medium text-gray-700">Loại phòng:</label>
-            <select
-              id="id_loai_phong"
-              name="id_loai_phong"
-              value={filters.id_loai_phong}
-              onChange={handleFilterChange}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
-            >
-              <option value="">Tất cả</option>
-              {loaiPhongList.map(type => (
-                <option key={type.id} value={type.id}>{type.ten}</option>
-              ))}
             </select>
           </div>
         </div>
@@ -175,7 +179,7 @@ const Room = () => {
         <Swiper
           slidesPerView={1}
           spaceBetween={30}
-          loop={false} // Thường không loop khi có bộ lọc để tránh nhảy qua phòng không liên quan
+          loop={false}
           autoplay={{
             delay: 3500,
             disableOnInteraction: false,
@@ -199,35 +203,36 @@ const Room = () => {
             },
           }}
           modules={[Autoplay, Pagination, Navigation]}
-          className="mySwiper !pb-12" // Add padding bottom for pagination dots
+          className="mySwiper !pb-12"
         >
           {filteredRooms.map((room) => (
             <SwiperSlide key={room.id}>
               <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105 transform">
                 <img
-                  src={room.hinh_anh || "/img/default-room.jpg"} // Fallback image
-                  alt={room.ten}
+                  src={room.hinh_anh || "/img/default-room.jpg"}
+                  alt={room.ten_phong}
                   className="w-full h-48 object-cover"
                 />
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{room.ten}</h3>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{room.ten_phong}</h3>
                   <p className="text-sm text-gray-600 mb-2">Loại phòng: <span className="font-medium text-orange-600">{room.ten_loai_phong}</span></p>
-                  <p className="text-sm text-gray-600 mb-2">Sức chứa: {room.sl_hien_tai}/{room.sl_max} người</p>
-                  <p className="text-sm text-gray-600 mb-2">Giới tính: <span className="font-medium text-gray-700">{room.gender}</span></p>
+                  <p className="text-sm text-gray-600 mb-2">Sức chứa: {room.so_giuong_hien_tai_da_chiem}/{room.so_giuong_toi_da} người</p>
+                  <p className="text-sm text-gray-600 mb-2">Giới tính: <span className="font-medium text-gray-700">{room.gioi_tinh_phong}</span></p>
                   <p className="text-sm text-gray-600 mb-4">Trạng thái:
-                    <span className={`ml-1 font-semibold ${room.isAvailable ? 'text-green-600' : 'text-red-600'
-                      }`}>                      {room.isAvailable ? 'Còn chỗ' : 'Hết chỗ'}
+                    <span className={`ml-1 font-semibold ${room.con_cho_trong ? 'text-green-600' : 'text-red-600'}`}>
+                      {room.con_cho_trong ? 'Còn chỗ' : 'Hết chỗ'}
                     </span>
                   </p>
                   <p className="text-lg font-bold text-orange-700 mb-4">{room.gia_loai_phong.toLocaleString('vi-VN')} VNĐ/tháng</p>
                   <button
-                    className={`w-full py-2 rounded-md font-semibold transition-colors duration-200 ${room.isAvailable
+                    className={`w-full py-2 rounded-md font-semibold transition-colors duration-200 ${room.con_cho_trong
                       ? 'bg-orange-500 text-white hover:bg-orange-600'
                       : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                      }`} disabled={!room.isAvailable}
-                    onClick={() => handleRegisterClick(room.id)} // Thêm onClick handler
+                      }`}
+                    disabled={!room.con_cho_trong}
+                    onClick={() => handleRegisterClick(room.id)}
                   >
-                    {room.isAvailable ? 'Đăng ký ngay' : 'Hết chỗ'}
+                    {room.con_cho_trong ? 'Đăng ký ngay' : 'Hết chỗ'}
                   </button>
                 </div>
               </div>
