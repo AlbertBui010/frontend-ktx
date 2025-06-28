@@ -3,14 +3,21 @@ import logo from "/img/logo2.png";
 import { Menu, X, User, CircleUser } from "lucide-react";
 import clsx from "clsx";
 import ProfileTab from "./ProfileTab"; // Đường dẫn tùy vào cấu trúc dự án
+import { authService } from "../services/auth/auth.service";   // ⭐
 
 const Header = () => {
   const [hideLogo, setHideLogo] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [user, setUser] = useState(() => authService.getUserInfo()); // ⭐
 
-  let user = JSON.parse(localStorage.getItem("user"));
-
+ /* Cập nhật user nếu tab khác login/logout */
+  useEffect(() => {
+    const sync = () => setUser(authService.getUserInfo());
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+  
   useEffect(() => {
     const handleScroll = () => {
       setHideLogo(window.scrollY > 100);

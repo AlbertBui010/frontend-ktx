@@ -3,10 +3,12 @@ import { Bed } from "lucide-react";
 
 export const API_ENDPOINTS = {
   // Authentication
+  AUTH: {
+    PROFILE: "/auth/profile",
+  },
 
   // Student Registration
   STUDENT_REGISTRATION: {
-    
     REGISTER: "/auth/register/student",
     SETUP_PASSWORD: "/students/setup-password",
   },
@@ -64,16 +66,16 @@ export const API_ENDPOINTS = {
     DELETE: (roomId, bedId) => `rooms/rooms/${roomId}/beds/${bedId}`, // <-- FIX: Add roomId parameter and use bedId for consistency
   },
   TOPIC: {
-    GET_ALL: "topics/topics",
-    CREATE: "topics/topics",
-    UPDATE: (id) => `topics/topics/${id}`,
-    DELETE: (id) => `topics/topics/${id}`,
+    GET_ALL: "/topics/topics",
+    CREATE: "/topics/topics",
+    UPDATE: (id) => `/topics/topics/${id}`,
+    DELETE: (id) => `/topics/topics/${id}`,
   },
   NEWS: {
-    GET_ALL: "topics/news",
-    CREATE: "topics/news",
-    UPDATE: (id) => `topics/news/${id}`,
-    DELETE: (id) => `topics/news/${id}`,
+    GET_ALL: "/topics/news",
+    CREATE: "/topics/news",
+    UPDATE: (id) => `/topics/news/${id}`,
+    DELETE: (id) => `/topics/news/${id}`,
   },
   NEWS_TOPIC_LINK: {
     GET_ALL: "/news-topic-links",

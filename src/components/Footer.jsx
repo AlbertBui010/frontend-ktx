@@ -19,7 +19,7 @@ const Footer = () => {
 
         <div className="">
           <h1 className=" text-2xl font-bold">Social Account</h1>
-          <div className=" mt-3 space-x-3 text-white text-2xl flex items-center">
+          <div className=" mt-3 space-x-3 text-black text-2xl flex items-center justify-center">
           <FaFacebook className="hover:text-blue-500 cursor-pointer" />
           <FaInstagram className="hover:text-pink-500 cursor-pointer" />
           <FaTiktok className="hover:text-purple-600 cursor-pointer" />

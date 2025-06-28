@@ -374,7 +374,7 @@ const RoomAllocation = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.ngay_ket_thuc
                         ? new Date(item.ngay_ket_thuc).toLocaleDateString("vi-VN")
-                        : ""}
+                        : "NULL"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.trang_thai}

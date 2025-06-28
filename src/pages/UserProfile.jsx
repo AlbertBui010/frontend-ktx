@@ -1,278 +1,187 @@
-import React, { useEffect, useState } from "react";
+// src/pages/UserProfile.jsx
+import React, { useEffect, useMemo, useState } from "react";
+import { authService } from "../services/auth/auth.service";
 import { studentService } from "../services/student/student.service";
 import { staffService } from "../services/staff/staff.service";
-import { authService } from "../services/auth/auth.service";
 
-// Các trường cho từng loại user
-const studentFields = [
-  "mssv",
-  "ten",
-  "dia_chi",
-  "phai",
-  "ngay_sinh",
-  "noi_sinh",
-  "dan_toc",
-  "ton_giao",
-  "khoa",
-  "sdt",
-  "cmnd",
-  "ngay_cap_cmnd",
-  "noi_cap_cmnd",
-  "ho_khau",
-  "dia_chi_lien_he",
-  "trang_thai",
-  "email",
-  "lop",
-];
-const staffFields = [
-  "ma_nv",
-  "ten",
-  "phai",
-  "ngay_vao_lam",
-  "phong_ban",
-  "role",
-  "sdt",
-  "email",
-  "cmnd",
-  "trang_thai",
-];
-
-const initialStudentState = {
-  mssv: "",
-  ten: "",
-  dia_chi: "",
-  phai: "",
-  ngay_sinh: "",
-  noi_sinh: "",
-  dan_toc: "",
-  ton_giao: "",
-  khoa: "",
-  sdt: "",
-  cmnd: "",
-  ngay_cap_cmnd: "",
-  noi_cap_cmnd: "",
-  ho_khau: "",
-  dia_chi_lien_he: "",
-  trang_thai: "",
-  email: "",
-  lop: "",
-  dang_hien: true,
-};
-const initialStaffState = {
-  ma_nv: "",
-  ten: "",
-  phai: "",
-  ngay_vao_lam: "",
-  phong_ban: "",
-  role: "",
-  sdt: "",
-  email: "",
-  cmnd: "",
-  trang_thai: "",
-  dang_hien: true,
+/* ----- Khai báo field ----- */
+const FIELD_CONFIG = {
+  student: [
+    { key: "mssv", label: "MSSV", noEdit: true, required: true },
+    { key: "ten", label: "Tên", required: true },
+    { key: "dia_chi", label: "Địa chỉ" },
+    { key: "phai", label: "Giới tính", type: "select", opts: ["Nam", "Nữ", "Khác"] },
+    { key: "ngay_sinh", label: "Ngày sinh", type: "date" },
+    { key: "noi_sinh", label: "Nơi sinh" },
+    { key: "dan_toc", label: "Dân tộc" },
+    { key: "ton_giao", label: "Tôn giáo" },
+    { key: "khoa", label: "Khoa" },
+    { key: "lop", label: "Lớp" },
+    { key: "sdt", label: "SĐT", type: "number" },
+    { key: "email", label: "Email", required: true },
+    { key: "cmnd", label: "CMND", type: "number" },
+    { key: "ngay_cap_cmnd", label: "Ngày cấp CMND", type: "date" },
+    { key: "noi_cap_cmnd", label: "Nơi cấp CMND" },
+    { key: "ho_khau", label: "Hộ khẩu" },
+    { key: "dia_chi_lien_he", label: "Địa chỉ liên hệ" },
+  ],
+  staff: [
+    { key: "ma_nv", label: "Mã NV", noEdit: true, required: true },
+    { key: "ten", label: "Tên", required: true },
+    { key: "phai", label: "Giới tính", type: "select", opts: ["Nam", "Nữ", "Khác"] },
+    { key: "ngay_vao_lam", label: "Ngày vào làm", type: "date", noEdit: true },
+    { key: "phong_ban", label: "Phòng ban", noEdit: true },
+    {
+      key: "role",
+      label: "Chức vụ",
+      noEdit: true,
+      type: "select",
+      opts: [
+        { value: "admin", text: "Admin" },
+        { value: "staff", text: "Staff" },
+      ],
+    },
+    { key: "sdt", label: "SĐT", type: "number" },
+    { key: "email", label: "Email", required: true },
+    { key: "cmnd", label: "CMND", type: "number" },
+  ],
 };
 
-const UserProfile = () => {
-  const [user, setUser] = useState({});
+export default function UserProfile() {
+  const [formData, setFormData] = useState({});
+  const [original, setOriginal] = useState({});
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [userType, setUserType] = useState("student");
+  const [type, setType] = useState(null); // 'student' | 'staff'
 
   useEffect(() => {
-    const userInfo = authService.getUserInfo();
-    // Ưu tiên kiểm tra role === "admin" trước
-    if (userInfo?.role === "admin") {
-      setUserType("admin");
-      setUser({ ...initialStaffState, ...userInfo });
-    } else if (userInfo?.ma_nv) {
-      setUserType("staff");
-      setUser({ ...initialStaffState, ...userInfo });
-    } else {
-      setUserType("student");
-      setUser({ ...initialStudentState, ...userInfo });
-    }
+    (async () => {
+      try {
+        const { user } = await authService.getProfile();
+        const t = user.ma_nv || user.role === "admin" ? "staff" : "student";
+        setType(t);
+        setFormData(user);
+        setOriginal(user);
+      } catch {
+        alert("Không lấy được thông tin người dùng!");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const handleChange = (e) => {
+  const fields = useMemo(() => (type ? FIELD_CONFIG[type] : []), [type]);
+
+  const onChange = (e) => {
     const { name, value } = e.target;
-    setUser((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((p) => ({ ...p, [name]: value }));
   };
 
-  const handleEdit = () => setEditing(true);
-  const handleCancel = () => setEditing(false);
-
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const onSave = async () => {
     setLoading(true);
     try {
-      if (userType === "student") {
-        await studentService.update(user.id, user);
-        authService.setUserInfo(user, "student");
-      } else {
-        await staffService.update(user.id, user);
-        authService.setUserInfo(user, userType); // staff hoặc admin
-      }
-      alert("Cập nhật thông tin thành công!");
+      if (type === "student") await studentService.update(formData.id, formData);
+      else await staffService.update(formData.id, formData);
+      authService.setUserInfo(formData, type);
+      setOriginal(formData);
+      alert("Cập nhật thành công!");
       setEditing(false);
-    } catch (error) {
-      alert(
-        error?.response?.data?.error?.message ||
-          "Có lỗi xảy ra khi cập nhật thông tin!"
-      );
+    } catch (err) {
+      alert(err?.response?.data?.error?.message || "Cập nhật thất bại!");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Chọn fields phù hợp
-  const fields = userType === "student" ? studentFields : staffFields;
+  if (loading) return <p className="text-center mt-10">Đang tải…</p>;
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
-      <h2 className="text-2xl font-bold mb-6 text-center text-black">
-        Thông Tin Cá Nhân (
-        {userType === "student"
-          ? "Sinh viên"
-          : userType === "admin"
-          ? "Admin"
-          : "Nhân viên"}
-        )
-      </h2>
-      <form
-        onSubmit={handleSave}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
-      >
-        {fields.map((key) => {
-          let inputType = "text";
-          if (["ngay_sinh", "ngay_cap_cmnd", "ngay_vao_lam"].includes(key))
-            inputType = "date";
-          if (["sdt", "cmnd"].includes(key)) inputType = "number";
-          if (key === "phai") {
+    <div className="max-w-6xl mx-auto bg-white shadow-xl p-8 rounded-lg mt-8">
+      <div className="flex flex-col items-center mb-8">
+        <h1 className="text-3xl font-bold text-center mb-6">
+          Thông Tin {type === "student" ? "Sinh Viên" : "Nhân Viên"}
+        </h1>
+        <div className="w-[75px] h-1 bg-orange-500"></div>
+      </div>
+
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {fields.map(({ key, label, type: fType = "text", opts, required, noEdit }) => {
+          const disabled = !editing || noEdit;
+
+          if (fType === "select") {
             return (
               <div key={key} className="flex flex-col">
-                <label className="text-sm font-medium text-gray-700 mb-1">
-                  {key.replace(/_/g, " ")}
-                </label>
+                <label className="mb-1 text-sm font-medium">{label}</label>
                 <select
                   name={key}
-                  value={user[key] || ""}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300"
-                  required
+                  value={formData[key] ?? ""}
+                  onChange={onChange}
+                  disabled={disabled}
+                  required={required && !disabled}
+                  className={`p-3 rounded-md ${disabled ? "bg-gray-100 cursor-not-allowed" : "border border-gray-300 focus:ring-2 focus:ring-orange-400"
+                    }`}
                 >
-                  <option value="">Chọn giới tính</option>
-                  <option value="Nam">Nam</option>
-                  <option value="Nữ">Nữ</option>
-                  <option value="Khác">Khác</option>
-                </select>
-              </div>
-            );
-          }
-          if (key === "role") {
-            return (
-              <div key={key} className="flex flex-col">
-                <label className="text-sm font-medium text-gray-700 mb-1">
-                  {key.replace(/_/g, " ")}
-                </label>
-                <select
-                  name={key}
-                  value={user[key] || ""}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300"
-                  required
-                >
-                  <option value="">Chọn chức vụ</option>
-                  <option value="admin">Admin</option>
-                  <option value="staff">Staff</option>
-                </select>
-              </div>
-            );
-          }
-          if (key === "trang_thai") {
-            return (
-              <div key={key} className="flex flex-col">
-                <label className="text-sm font-medium text-gray-700 mb-1">
-                  {key.replace(/_/g, " ")}
-                </label>
-                <select
-                  name={key}
-                  value={user[key] || ""}
-                  onChange={handleChange}
-                  disabled={!editing}
-                  className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300"
-                  required
-                >
-                  <option value="">Chọn trạng thái</option>
-                  {userType === "student" ? (
-                    <>
-                      <option value="active_resident">Đang ở</option>
-                      <option value="applicant">Chờ duyệt</option>
-                      <option value="inactive">Chưa đăng ký</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="active">Đang làm</option>
-                      <option value="inactive">Nghỉ việc</option>
-                      <option value="suspended">Tạm nghỉ</option>
-                    </>
+                  <option value="">-- Chọn --</option>
+                  {opts.map((o) =>
+                    typeof o === "string"
+                      ? <option key={o} value={o}>{o}</option>
+                      : <option key={o.value} value={o.value}>{o.text}</option>
                   )}
                 </select>
               </div>
             );
           }
+
           return (
             <div key={key} className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">
-                {key.replace(/_/g, " ")}
-              </label>
+              <label className="mb-1 text-sm font-medium">{label}</label>
               <input
-                type={inputType}
+                type={fType}
                 name={key}
-                value={user[key] || ""}
-                onChange={handleChange}
-                disabled={!editing}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300"
-                required={["mssv", "ten", "email", "ma_nv"].includes(key)}
+                value={formData[key] ?? ""}
+                onChange={onChange}
+                disabled={disabled}
+                required={required && !disabled}
+                className={`p-3 rounded-md ${disabled ? "bg-gray-100 cursor-not-allowed" : "border border-gray-300 focus:ring-2 focus:ring-orange-400"
+                  }`}
               />
             </div>
           );
         })}
-        <div className="col-span-full flex justify-end space-x-4 mt-4">
-          {editing ? (
-            <>
-              <button
-                type="submit"
-                className="bg-black hover:bg-green-600 text-white font-bold py-3 px-6 rounded-[100px] shadow-md transition"
-                disabled={loading}
-              >
-                Lưu
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-md shadow-md transition"
-                disabled={loading}
-              >
-                Hủy
-              </button>
-            </>
-          ) : (
+      </div>
+
+      {/* Nút thao tác nằm ngoài <form> để tránh trigger submit bất ngờ */}
+      <div className="mt-8 flex justify-end gap-4">
+        {editing ? (
+          <>
             <button
-              type="button"
-              onClick={handleEdit}
-              className="bg-black hover:bg-orange-500 text-white font-bold py-3 px-6 rounded-[100px] shadow-md transition"
+              onClick={onSave}
+              className="px-6 py-3 bg-black transition transform duration-200 hover:bg-green-500 text-white rounded-md font-bold"
+              disabled={loading}
             >
-              Chỉnh sửa
+              Lưu
             </button>
-          )}
-        </div>
-      </form>
+            <button
+              onClick={() => {
+                setFormData(original);
+                setEditing(false);
+              }}
+              className="px-6 py-3 bg-black transition transform duration-200 hover:bg-red-500 text-white rounded-md font-bold"
+              disabled={loading}
+            >
+              Hủy
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="px-6 py-3 bg-black transition transform duration-200 hover:bg-orange-500 text-white rounded-md font-bold"
+          >
+            Chỉnh sửa
+          </button>
+        )}
+      </div>
     </div>
   );
-};
-
-export default UserProfile;
+}

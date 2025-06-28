@@ -46,16 +46,25 @@ const Login = () => {
 
     const response = await authService.login(dataRequest, userType);
 
-    if (response.success) {
-      localStorage.setItem("accessToken", response.data.tokens.accessToken);
-      localStorage.setItem("refreshToken", response.data.tokens.refreshToken);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      if (response.data.user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
-    } else {
+    // if (response.success) {
+    //   localStorage.setItem("accessToken", response.data.tokens.accessToken);
+    //   localStorage.setItem("refreshToken", response.data.tokens.refreshToken);
+    //   localStorage.setItem("user", JSON.stringify(response.data.user));
+    //   if (response.data.user.role === "admin") {
+    //     navigate("/admin");
+    //   } else {
+    //     navigate("/");
+    //   }
+    // }
+  if (response.success) {
+  const { accessToken, refreshToken } = response.data.tokens;
+  authService.setToken(accessToken);          // ⭐
+  localStorage.setItem("refreshToken", refreshToken);
+  authService.setUserInfo(response.data.user, userType);
+
+  if (response.data.user.role === "admin") navigate("/admin");
+  else navigate("/");
+} else {
       alert(
         response.message || "Đăng nhập không thành công. Vui lòng thử lại."
       );
