@@ -3,8 +3,8 @@ import { API_ENDPOINTS } from "../api/endpoints";
 
 
 const TOKEN_KEY = "auth_token";
-const USER_KEY  = "user_info";
-const TYPE_KEY  = "user_type";
+const USER_KEY = "user_info";
+const TYPE_KEY = "user_type";
 
 
 export const authService = {
@@ -24,19 +24,28 @@ export const authService = {
     return await apiClient.post(endpoint, credentials);
   },
 
-  getProfile: async () =>{
+  getProfile: async () => {
     const res = await apiClient.get(API_ENDPOINTS.AUTH.PROFILE);
     return res.data; // Giả sử API trả về { user: {...} }
   },
   // Logout
-  logout: async (token) => {
-    return await apiClient.post(
-      API_ENDPOINTS.AUTH.LOGOUT,
-      {},
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+  logout: async () => {
+    try {
+      // interceptor đã tự gắn Authorization
+      await apiClient.post(API_ENDPOINTS.AUTH.LOGOUT);
+    } catch (e) {
+      // nếu access‑token hết hạn, vẫn tiếp tục xoá localStorage
+      console.warn("Logout API error (ignored):", e.message);
+    } finally {
+      // Xoá toàn bộ dấu vết local
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem(TYPE_KEY);
+
+      // Gửi sự kiện cho các tab khác (Header đang lắng nghe 'storage')
+      window.dispatchEvent(new Event("storage"));
+    }
   },
 
   // Refresh token

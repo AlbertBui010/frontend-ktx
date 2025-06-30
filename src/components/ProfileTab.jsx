@@ -1,10 +1,13 @@
 import React from "react";
 import { X } from "lucide-react";
+import { authService } from "../services/auth/auth.service";
+import {  useNavigate } from "react-router-dom";
 
 const ProfileTab = ({ isOpen, onClose, user }) => {
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+    const navigate = useNavigate();
+    const handleLogout = async () => {
+        await authService.logout();
+        navigate("/login");
     };
 
     return (

@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { roomAllocationService } from "../../services/roomAlocation/roomAlocation.service";
+import { studentService } from "../../services/student/student.service";
+import { roomService } from "../../services/room/room.service";
 
 const initialState = {
   id_sv: "",
@@ -25,8 +27,12 @@ const RoomAllocation = () => {
   const [form, setForm] = useState(initialState);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [students, setStudents] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [beds, setBeds] = useState([]);
+  const [selectedRoomId, setSelectedRoomId] = useState("");
 
-  // Fetch data
+  // Lấy danh sách phân bổ phòng
   const fetchAllocations = async () => {
     setLoading(true);
     setError(null);
@@ -40,11 +46,44 @@ const RoomAllocation = () => {
     setLoading(false);
   };
 
+  // Lấy sinh viên đủ điều kiện và danh sách phòng
+  const fetchStudentsAndRooms = async () => {
+    try {
+      // Lấy sinh viên chưa có phân bổ phòng active và không bị banned
+      const res = await studentService.getAll({ eligible: true });
+      setStudents(res.data.students || []);
+    } catch {
+      setStudents([]);
+    }
+    try {
+      const res = await roomService.getAll({ limit: 100 });
+      setRooms(res.data.rooms || []);
+    } catch {
+      setRooms([]);
+    }
+  };
+
   useEffect(() => {
     fetchAllocations();
+    fetchStudentsAndRooms();
   }, []);
 
-  // Search/filter
+  // Khi chọn phòng, lấy danh sách giường còn trống
+  useEffect(() => {
+    if (selectedRoomId) {
+      roomService.getBeds(selectedRoomId).then((res) => {
+        // Lọc giường còn trống (trang_thai === "available")
+        const availableBeds = (res.data.beds || []).filter(
+          (bed) => bed.trang_thai === "available"
+        );
+        setBeds(availableBeds);
+      });
+    } else {
+      setBeds([]);
+    }
+  }, [selectedRoomId]);
+
+  // Lọc danh sách theo searchTerm
   useEffect(() => {
     let results = allocations;
     if (searchTerm) {
@@ -60,7 +99,7 @@ const RoomAllocation = () => {
     setFilteredAllocations(results);
   }, [searchTerm, allocations]);
 
-  // Form handlers
+  // Xử lý thay đổi input
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
@@ -69,13 +108,17 @@ const RoomAllocation = () => {
     }));
   };
 
+  // Thêm mới
   const handleAdd = () => {
     setIsFormOpen(true);
     setEditing(null);
     setForm(initialState);
+    setSelectedRoomId("");
+    setBeds([]);
     setError(null);
   };
 
+  // Sửa
   const handleEdit = (item) => {
     setEditing(item);
     setForm({
@@ -86,17 +129,31 @@ const RoomAllocation = () => {
       trang_thai: item.trang_thai,
       ly_do_ket_thuc: item.ly_do_ket_thuc || "",
     });
+    setSelectedRoomId(item.Bed?.Room?.id || "");
     setIsFormOpen(true);
     setError(null);
+    // Lấy lại danh sách giường cho phòng này
+    roomService.getBeds(item.Bed?.Room?.id).then((res) => {
+      const availableBeds = (res.data.beds || []).filter(
+        (bed) =>
+          bed.trang_thai === "available" ||
+          bed.id === item.id_giuong // Cho phép chọn lại chính giường đang ở
+      );
+      setBeds(availableBeds);
+    });
   };
 
+  // Hủy
   const handleCancel = () => {
     setIsFormOpen(false);
     setEditing(null);
     setForm(initialState);
+    setSelectedRoomId("");
+    setBeds([]);
     setError(null);
   };
 
+  // Lưu
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -116,6 +173,7 @@ const RoomAllocation = () => {
       }
       handleCancel();
       fetchAllocations();
+      fetchStudentsAndRooms();
     } catch (err) {
       setError(
         err?.response?.data?.error?.message ||
@@ -125,6 +183,7 @@ const RoomAllocation = () => {
     setLoading(false);
   };
 
+  // Xóa
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa phân bổ này?")) {
       setLoading(true);
@@ -133,6 +192,7 @@ const RoomAllocation = () => {
         await roomAllocationService.delete(id);
         alert("Xóa phân bổ thành công!");
         fetchAllocations();
+        fetchStudentsAndRooms();
       } catch (err) {
         setError(
           err?.response?.data?.error?.message ||
@@ -187,32 +247,71 @@ const RoomAllocation = () => {
             onSubmit={handleSubmit}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
+            {/* Chọn sinh viên */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
-                ID Sinh Viên
+                Sinh Viên
               </label>
-              <input
-                type="number"
+              <select
                 name="id_sv"
                 value={form.id_sv}
                 onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="p-3 border border-gray-300 rounded-md"
                 required
-              />
+                disabled={!!editing}
+              >
+                <option value="">-- Chọn sinh viên --</option>
+                {students.map((sv) => (
+                  <option key={sv.id} value={sv.id}>
+                    {sv.mssv} - {sv.ten}
+                  </option>
+                ))}
+              </select>
             </div>
+            {/* Chọn phòng */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
-                ID Giường
+                Phòng
               </label>
-              <input
-                type="number"
+              <select
+                value={selectedRoomId}
+                onChange={(e) => {
+                  setSelectedRoomId(e.target.value);
+                  setForm((f) => ({ ...f, id_giuong: "" }));
+                }}
+                className="p-3 border border-gray-300 rounded-md"
+                required
+              >
+                <option value="">-- Chọn phòng --</option>
+                {rooms.map((room) => (
+                  <option key={room.id} value={room.id}>
+                    {room.ten_phong}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Chọn giường */}
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">
+                Giường
+              </label>
+              <select
                 name="id_giuong"
                 value={form.id_giuong}
                 onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="p-3 border border-gray-300 rounded-md"
                 required
-              />
+                disabled={!selectedRoomId}
+              >
+                <option value="">-- Chọn giường --</option>
+                {beds.map((bed) => (
+                  <option key={bed.id} value={bed.id}>
+                    {bed.ten_giuong}
+                  </option>
+                ))}
+              </select>
             </div>
+            {/* Ngày bắt đầu */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Ngày Bắt Đầu
@@ -222,10 +321,11 @@ const RoomAllocation = () => {
                 name="ngay_bat_dau"
                 value={form.ngay_bat_dau}
                 onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="p-3 border border-gray-300 rounded-md"
                 required
               />
             </div>
+            {/* Ngày kết thúc */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Ngày Kết Thúc
@@ -235,9 +335,10 @@ const RoomAllocation = () => {
                 name="ngay_ket_thuc"
                 value={form.ngay_ket_thuc || ""}
                 onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="p-3 border border-gray-300 rounded-md"
               />
             </div>
+            {/* Trạng thái */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Trạng Thái
@@ -246,7 +347,7 @@ const RoomAllocation = () => {
                 name="trang_thai"
                 value={form.trang_thai}
                 onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="p-3 border border-gray-300 rounded-md"
                 required
               >
                 <option value="active">Đang ở</option>
@@ -258,6 +359,7 @@ const RoomAllocation = () => {
                 <option value="transferred">Chuyển phòng</option>
               </select>
             </div>
+            {/* Lý do kết thúc */}
             <div className="flex flex-col">
               <label className="text-sm font-medium text-gray-700 mb-1">
                 Lý Do Kết Thúc
@@ -267,9 +369,10 @@ const RoomAllocation = () => {
                 name="ly_do_ket_thuc"
                 value={form.ly_do_ket_thuc}
                 onChange={handleInputChange}
-                className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="p-3 border border-gray-300 rounded-md"
               />
             </div>
+            {/* Nút submit/hủy */}
             <div className="col-span-full flex justify-end space-x-4 mt-4">
               <button
                 type="submit"
