@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-// import { phieuDangKyKtxList } from '../../constant/data'; // REMOVE this line as we're using API
-import { ENUM_PHIEU_DANG_KY_TRANG_THAI } from '../../../../backend-ktx/src/constants/database.constants';
-import { registrationService } from '../../services/registration/registration.service'; // Import your service
-import { roomService } from '../../services/room/room.service'; // Đảm bảo đã có service này
+import { ENUM_PHIEU_DANG_KY_TRANG_THAI } from '../../constant/enum';
+import { registrationService } from '../../services/registration/registration.service';
+import { roomService } from '../../services/room/room.service';
 
 const initialRequestState = {
     id: '',

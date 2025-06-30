@@ -3,7 +3,6 @@ import axios from "axios";
 const API_BASE_URL =
   import.meta.env.VITE_APP_API_BASE_URL || "http://localhost:3001/api";
 
-// Tạo axios instance
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -15,7 +14,7 @@ const axiosInstance = axios.create({
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken"); // hoặc sessionStorage
+    const token = localStorage.getItem("accessToken");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
