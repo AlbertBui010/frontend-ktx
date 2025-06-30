@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
   // Authentication
   AUTH: {
     PROFILE: "/auth/profile",
+    LOGOUT: "/auth/logout",
   },
 
   // Student Registration
