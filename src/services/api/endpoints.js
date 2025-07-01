@@ -91,6 +91,12 @@ export const API_ENDPOINTS = {
     DELETE: (id) => `/room-allocations/${id}`,
     GET_BY_ID: (id) => `/room-allocations/${id}`,
   },
+
+  PAYMENT: {
+    GET_DETAILS: (allocationId) => `/payments/${allocationId}`,
+    CREATE_CHECKOUT: (allocationId) => `/payments/${allocationId}/checkout`,
+  },
+  ACTIVE_ALLOCATION: "/room-allocations/active", // trả về { id_allocation }
 };
 
 

@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import bgLogin from "/img/login-bg.jpg";
 import { authService } from "../services/auth/auth.service";
 import { ROLE } from "../constant/api";
-
+import { paymentService } from "../services/payment/payment.service";
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = React.useState({
@@ -56,18 +56,32 @@ const Login = () => {
     //     navigate("/");
     //   }
     // }
-  if (response.success) {
-  const { accessToken, refreshToken } = response.data.tokens;
-  authService.setToken(accessToken);          // ⭐
-  localStorage.setItem("refreshToken", refreshToken);
-  authService.setUserInfo(response.data.user, userType);
+    if (response.success) {
+      const { accessToken, refreshToken } = response.data.tokens;
+      const rawUser = response.data.user;
 
-  if (response.data.user.role === "admin") navigate("/admin");
-  else navigate("/");
-} else {
-      alert(
-        response.message || "Đăng nhập không thành công. Vui lòng thử lại."
+      authService.setToken(accessToken);          // ⭐
+      localStorage.setItem("refreshToken", refreshToken);
+
+      let activeAllocationId = null;
+      if (userType === ROLE.STUDENT) {
+        try {
+          const { data } = await paymentService.getActiveAllocation();
+          activeAllocationId = data.data.id_allocation;   // { data: { id_allocation } }
+        } catch (e) {
+          // có thể log hoặc bỏ qua; sinh viên chưa có phân bổ cũng OK
+        }
+      }
+      // authService.setUserInfo(response.data.user, userType);
+      authService.setUserInfo(
+        { ...rawUser, activeAllocationId },
+        userType
       );
+
+      if (rawUser.role === "admin") navigate("/admin");
+      else navigate("/");
+    } else {
+      alert(response.message || "Đăng nhập không thành công. Vui lòng thử lại.");
     }
   };
 

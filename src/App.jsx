@@ -20,13 +20,14 @@ import NewsManager from "./components/Admin/NewsManager";
 import TopicManager from "./components/Admin/TopicManager";
 import StaffManager from "./components/Admin/StaffManager";
 import RoomTypeManager from "./components/Admin/RoomTypeManager";
-
+import RoomPaymentManager from "./components/Admin/RoomPaymentManager";
 
 import Room from './components/Room'; // Import Room component
 import RoomDetailPage from "./pages/RoomDetailPage";
 import ScrollToTop from "./components/ScrollToTop";
 import SetupPassword from "./components/Auth/SetupPassword";
 import ProfileUser from "./pages/UserProfile";
+import RoomPaymentDetails from "./components/RoomPaymentDetails"; // Import RoomPaymentDetails component
 function App() {
   return (
     <>
@@ -50,6 +51,7 @@ function App() {
           </Route>
           <Route path="/setup-password" element={<SetupPassword />} />
           <Route path="profile" element={<ProfileUser />} />
+          <Route path="/payments/:allocationId" element={<RoomPaymentDetails />} /> {/* Route for RoomPaymentDetails */}
           {/* Admin routes */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminHomePage />} />
@@ -64,6 +66,7 @@ function App() {
             <Route path="chu-de" element={<TopicManager />} />
             <Route path="StaffManager" element={<StaffManager />} />
             <Route path="RoomTypeManager" element={<RoomTypeManager />} />
+            <Route path="RoomPaymentManager" element={<RoomPaymentManager />} />
           </Route>
         </Routes>
       </Router>

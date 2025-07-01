@@ -1,5 +1,5 @@
 //src\constant\data.js
-import { ENUM_PHIEU_DANG_KY_TRANG_THAI } from "../../../backend-ktx/src/constants/database.constants";
+import { ENUM_PHIEU_DANG_KY_TRANG_THAI } from "./enum";
 export const slide = [
   {
     image: "/img/Banner2.png",

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { roomAllocationService } from "../../services/roomAlocation/roomAlocation.service";
 import { studentService } from "../../services/student/student.service";
 import { roomService } from "../../services/room/room.service";
+import { calculateQuarterEndDate } from "../../utils/quater.utils";
 
 const initialState = {
   id_sv: "",
@@ -106,6 +107,17 @@ const RoomAllocation = () => {
       ...prev,
       [name]: value,
     }));
+    // Nếu người dùng chọn ngày_bat_dau khi THÊM MỚI → tự tính
+    if (name === "ngay_bat_dau" && !editing) {
+      const { endDate } = calculateQuarterEndDate(value);
+      setForm((prev) => ({
+        ...prev,
+        ngay_bat_dau: value,
+        ngay_ket_thuc: endDate ? formatDateForInput(endDate) : "",
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   // Thêm mới
@@ -177,7 +189,7 @@ const RoomAllocation = () => {
     } catch (err) {
       setError(
         err?.response?.data?.error?.message ||
-          "Có lỗi xảy ra khi lưu phân bổ phòng!"
+        "Có lỗi xảy ra khi lưu phân bổ phòng!"
       );
     }
     setLoading(false);
@@ -196,12 +208,33 @@ const RoomAllocation = () => {
       } catch (err) {
         setError(
           err?.response?.data?.error?.message ||
-            "Có lỗi xảy ra khi xóa phân bổ phòng!"
+          "Có lỗi xảy ra khi xóa phân bổ phòng!"
         );
       }
       setLoading(false);
     }
   };
+
+  const getTrangThaiText = (trangThai) => {
+  switch (trangThai) {
+    case "active":
+      return "Đang ở";
+    case "expired":
+      return "Hết hạn";
+    case "temporarily_away":
+      return "Tạm vắng";
+    case "suspended":
+      return "Tạm dừng";
+    case "terminated":
+      return "Kết thúc";
+    case "pending_checkout":
+      return "Chờ trả phòng";
+    case "transferred":
+      return "Chuyển phòng";
+    default:
+      return trangThai;
+  }
+};
 
   return (
     <div className="container mx-auto p-4">
@@ -336,6 +369,8 @@ const RoomAllocation = () => {
                 value={form.ngay_ket_thuc || ""}
                 onChange={handleInputChange}
                 className="p-3 border border-gray-300 rounded-md"
+                readOnly={!editing}
+                style={{ backgroundColor: !editing ? "#f5f5f5" : undefined }}
               />
             </div>
             {/* Trạng thái */}
@@ -382,8 +417,8 @@ const RoomAllocation = () => {
                 {loading
                   ? "Đang lưu..."
                   : editing
-                  ? "Cập Nhật"
-                  : "Thêm Mới"}
+                    ? "Cập Nhật"
+                    : "Thêm Mới"}
               </button>
               <button
                 type="button"
@@ -446,6 +481,9 @@ const RoomAllocation = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng Thái
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trạng Thái Thanh Toán
+                  </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thao tác
                   </th>
@@ -479,8 +517,41 @@ const RoomAllocation = () => {
                         ? new Date(item.ngay_ket_thuc).toLocaleDateString("vi-VN")
                         : "NULL"}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <span
+                        className={
+                          "px-3 py-1 rounded font-semibold " +
+                          (item.trang_thai === "active"
+                            ? "bg-green-100 text-green-700"
+                            : item.trang_thai === "expired"
+                              ? "bg-gray-200 text-gray-700"
+                              : item.trang_thai === "temporarily_away"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : item.trang_thai === "suspended"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : item.trang_thai === "terminated"
+                                    ? "bg-red-100 text-red-700"
+                                    : item.trang_thai === "pending_checkout"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : item.trang_thai === "transferred"
+                                        ? "bg-purple-100 text-purple-700"
+                                        : "bg-gray-100 text-gray-700")
+                        }
+                      >
+                        {getTrangThaiText(item.trang_thai)}
+                      </span>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.trang_thai}
+                      <span
+                        className={
+                          "px-3 py-1 rounded font-semibold " +
+                          (item.trang_thai_thanh_toan
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700")
+                        }
+                      >
+                        {item.trang_thai_thanh_toan ? "Đã thanh toán" : "Chưa thanh toán"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
