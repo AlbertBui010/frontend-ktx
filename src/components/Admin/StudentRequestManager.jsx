@@ -233,25 +233,25 @@ const StudentRequestManager = () => {
         switch (status) {
             case ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING:
                 return (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold bg-yellow-100 text-yellow-800">
                         Đang chờ
                     </span>
                 );
             case ENUM_PHIEU_DANG_KY_TRANG_THAI.APPROVED:
                 return (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    <span className="px-3 py-1  inline-flex text-xs leading-5 font-semibold bg-green-100 text-green-800">
                         Đã chấp thuận
                     </span>
                 );
             case ENUM_PHIEU_DANG_KY_TRANG_THAI.REJECTED:
                 return (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                    <span className="px-3 py-1  inline-flex text-xs leading-5 font-semibold bg-red-100 text-red-800">
                         Đã từ chối
                     </span>
                 );
             case ENUM_PHIEU_DANG_KY_TRANG_THAI.CANCELLED:
                 return (
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                    <span className="px-3 py-1  inline-flex text-xs leading-5 font-semibold bg-gray-100 text-gray-800">
                         Đã hủy
                     </span>
                 );
@@ -450,7 +450,7 @@ const StudentRequestManager = () => {
                             )}
                         </div>
 
-                        
+
 
                         <div className="flex justify-end space-x-4 mt-6 border-t pt-4">
                             {selectedRequest.trang_thai === ENUM_PHIEU_DANG_KY_TRANG_THAI.PENDING && (

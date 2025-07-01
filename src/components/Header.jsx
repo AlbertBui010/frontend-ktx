@@ -1,3 +1,4 @@
+//D:\LuanVanTotNghiep\frontend-ktx\src\components\Header.jsx
 import React, { useEffect, useState } from "react";
 import logo from "/img/logo2.png";
 import { Menu, X, User, CircleUser } from "lucide-react";
@@ -10,7 +11,7 @@ const Header = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [user, setUser] = useState(() => authService.getUserInfo()); // ⭐
-
+  
  /* Cập nhật user nếu tab khác login/logout */
   useEffect(() => {
     const sync = () => setUser(authService.getUserInfo());

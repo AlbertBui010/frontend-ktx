@@ -12,6 +12,7 @@ import staff from "/img/staff.png";
 import room1 from "/img/room-1.png";
 import roomtype from "/img/room-type.png";
 import register from "/img/register-form.png";
+import roompayment from "/img/room-payment.png";
 import { nav } from "framer-motion/client";
 import { authService } from "../services/auth/auth.service"; // thêm
 
@@ -19,7 +20,7 @@ const AdminHomePage = () => {
   const navigate = useNavigate();
   // Nếu là admin thì sẽ có quyền truy cập vào các trang quản lý nhân viên
   // Đọc user 1 lần khi component mount
-const [user] = useState(() => authService.getUserInfo());    // dùng helper
+  const [user] = useState(() => authService.getUserInfo());    // dùng helper
 
 
   /* Điều hướng nếu chưa đăng nhập */
@@ -52,19 +53,40 @@ const [user] = useState(() => authService.getUserInfo());    // dùng helper
     },
     {
       label: "Quản Lý Phiếu Đăng Ký Sinh Viên",
-      path :"/admin/sinh-vien-yeu-cau",
+      path: "/admin/sinh-vien-yeu-cau",
       img: register,
     },
-    { label: "Quản Lý Điện", path: "/admin/dien", img: electric },
-    { label: "Quản Lý Thanh Toán", path: "/admin/thanh-toan", img: payment },
+    {
+      label: "Quản Lý Điện",
+      path: "/admin/dien",
+      img: electric
+    },
+    {
+      label: "Quản Lý Hóa Đơn Phòng",
+      path: "/admin/RoomPaymentManager",
+      img: roompayment
+    },
+    {
+      label: "Quản Lý Thanh Toán",
+      path: "/admin/thanh-toan",
+      img: payment
+    },
 
     {
       label: "Quản Lý Phân Bổ Phòng",
       path: "/admin/phan-bo-phong",
       img: allocation,
     },
-    { label: "Quản Lý Bảng Tin", path: "/admin/bang-tin", img: news },
-    { label: "Quản Lý Chủ Đề", path: "/admin/chu-de", img: topic },
+    {
+      label: "Quản Lý Bảng Tin",
+      path: "/admin/bang-tin",
+      img: news
+    },
+    {
+      label: "Quản Lý Chủ Đề",
+      path: "/admin/chu-de",
+      img: topic
+    },
   ];
 
   if (isAdmin) {

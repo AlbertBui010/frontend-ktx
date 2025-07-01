@@ -1,7 +1,7 @@
 import React from "react";
 import { X } from "lucide-react";
 import { authService } from "../services/auth/auth.service";
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ProfileTab = ({ isOpen, onClose, user }) => {
     const navigate = useNavigate();
@@ -49,6 +49,22 @@ const ProfileTab = ({ isOpen, onClose, user }) => {
                         <a href="/admin" className="hover:text-orange-600">
                             Trang Quản Trị
                         </a>
+                    )}
+
+                    {user?.role !== "admin" && user?.role !== "staff" && (
+                          <button
+                            onClick={() => {
+                                if (user?.activeAllocationId) {
+                                    // điều hướng đúng allocation
+                                    window.location.href = `/payments/${user.activeAllocationId}`;
+                                } else {
+                                    alert("Bạn chưa có phân bổ phòng đang hoạt động.");
+                                }
+                            }}
+                            className="hover:text-orange-600"
+                        >
+                            Hóa Đơn Phòng
+                        </button>
                     )}
 
                     <button

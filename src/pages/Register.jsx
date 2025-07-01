@@ -65,7 +65,7 @@ const Register = () => {
   const handleCloseSuccess = () => {
     setShowSuccess(false);
     setSuccessData(null);
-    navigate("/"); // Điều hướng sau khi đóng popup
+    navigate("/login"); // Điều hướng sau khi đóng popup
   };
   return (
     <div
